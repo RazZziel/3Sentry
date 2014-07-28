@@ -35,7 +35,7 @@ int main (int argc, char** argv) {
   
   //video file?
   CvCapture* capture = NULL;
-  if (atoi(argv[1]) > 0)
+  if (atoi(argv[1]) > 0 || (argv[1][0]=='0' && argv[1][1]==0))
     capture = cvCaptureFromCAM(atoi(argv[1]));
   else
     capture = cvCaptureFromFile(argv[1]);
