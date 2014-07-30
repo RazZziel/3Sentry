@@ -9,20 +9,20 @@
 #define INC_CAMSHIFTING
 
 typedef struct {
-  IplImage* hsv;     //input image converted to HSV
-  IplImage* hue;     //hue channel of HSV image
-  IplImage* mask;    //image for masking pixels
-  IplImage* prob;    //face probability estimates for each pixel
+  cv::Mat* hsv;     //input image converted to HSV
+  cv::Mat* hue;     //hue channel of HSV image
+  cv::Mat* mask;    //image for masking pixels
+  cv::Mat* prob;    //face probability estimates for each pixel
 
-  CvHistogram* hist; //histogram of hue in original face image
+  cv::Mat* hist; //histogram of hue in original face image
 
-  CvRect prev_rect;  //location of face in previous frame
-  CvBox2D curr_box;  //current face location estimate
+  cv::Rect prev_rect;  //location of face in previous frame
+  cv::RotatedRect curr_box;  //current face location estimate
 } TrackedObj;
 
-TrackedObj* create_tracked_object (IplImage* image, CvRect* face_rect);
+TrackedObj* create_tracked_object (cv::Mat *image, cv::Rect* face_rect);
 void destroy_tracked_object (TrackedObj* tracked_obj);
-CvBox2D camshift_track_face (IplImage* image, TrackedObj* imgs);
-void update_hue_image (const IplImage* image, TrackedObj* imgs);
+cv::RotatedRect camshift_track_face (cv::Mat* image, TrackedObj* imgs);
+void update_hue_image (const cv::Mat* image, TrackedObj* imgs);
 
 #endif
