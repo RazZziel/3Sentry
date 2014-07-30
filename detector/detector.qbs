@@ -1,4 +1,5 @@
 import qbs
+import qbs.probes as Probes
 
 CppApplication {
     type: "application" // To suppress bundle generation on Mac
@@ -11,6 +12,11 @@ CppApplication {
     Group {     // Properties for the produced executable
         fileTagsFilter: product.type
         qbs.install: true
+    }
+
+    Probes.PkgConfigProbe {
+        id: pkgConfig
+        name: "opencv"
     }
 }
 
