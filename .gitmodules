@@ -1,0 +1,3 @@
+[submodule "detector/CvCamView"]
+	path = detector/CvCamView
+	url = https://github.com/rferrazz/CvCamView
