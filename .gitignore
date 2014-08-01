@@ -1,5 +1,5 @@
 a.out
-detector/trackface
+detector/trackface/trackface
 *.mp4
 *.pro.user
 *.qbs.user
