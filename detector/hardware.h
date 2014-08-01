@@ -28,7 +28,8 @@ public:
     void setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
 
     bool currentPosition(Pantilt pantilt, uint &x, uint &y);
-    bool target(uint pantilt, uint x, uint y);
+    bool targetAbsolute(uint pantilt, uint x, uint y);
+    bool targetRelative(uint pantilt, uint dx, uint dy);
     bool enableFiring(Gun gun);
     bool stopFiring(Gun gun);
 

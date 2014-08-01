@@ -12,6 +12,8 @@ QString MovementDetector::name()
 
 QList<cv::Rect> MovementDetector::detect(const cv::Mat& image) const
 {
+    // TODO: https://www.youtube.com/watch?v=X6rPdRZzgjg
+
     Q_UNUSED(image);
     return QList<cv::Rect>();
 }

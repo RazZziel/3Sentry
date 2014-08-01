@@ -36,6 +36,14 @@ bool Hardware::target(uint pantilt, uint x, uint y)
     return false;
 }
 
+bool Hardware::targetRelative(uint pantilt, uint dx, uint dy)
+{
+    Q_UNUSED(pantilt);
+    Q_UNUSED(dx);
+    Q_UNUSED(dy);
+    return false;
+}
+
 bool Hardware::enableFiring(Gun gun)
 {
     Q_UNUSED(gun);

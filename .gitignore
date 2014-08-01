@@ -5,3 +5,4 @@ detector/trackface/trackface
 *.qbs.user
 build-*
 *-build
+*.autosave
