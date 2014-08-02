@@ -1,7 +1,7 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle
-QT += core gui opengl
+QT += core gui opengl multimedia
 
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv
@@ -18,7 +18,8 @@ SOURCES += \
     detector/facedetector.cpp \
     detector/bodydetector.cpp \
     ui/cqtopencvviewergl.cpp \
-    sentryui.cpp
+    sentryui.cpp \
+    audio.cpp
 HEADERS += trackface/camshifting.h \
     trackface/trackface.h \
     controller.h \
@@ -29,7 +30,8 @@ HEADERS += trackface/camshifting.h \
     detector/facedetector.h \
     detector/bodydetector.h \
     ui/cqtopencvviewergl.h \
-    sentryui.h
+    sentryui.h \
+    audio.h
 
 FORMS += \
     sentryui.ui

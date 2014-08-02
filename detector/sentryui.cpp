@@ -1,6 +1,7 @@
+#include <unistd.h>
+#include <QCloseEvent>
 #include "sentryui.h"
 #include "ui_sentryui.h"
-
 #include "controller.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
@@ -24,4 +25,11 @@ SentryUI::~SentryUI()
 void SentryUI::onNewOpenCVFrame(cv::Mat image)
 {
     ui->wOpenCV->showImage(image);
+}
+
+void SentryUI::closeEvent(QCloseEvent *event)
+{
+    m_controller->stopProcessing();
+    sleep(2); // OBNOXIOUS HACK: Wait for audio to play (should try m_player->isAudioAvailable())
+    event->accept();
 }

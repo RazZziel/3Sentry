@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "audio.h"
 
 #include "detector/movementdetector.h"
 #include "detector/colordetector.h"
@@ -8,6 +9,7 @@
 Controller::Controller(QObject *parent) :
     QObject(parent),
     m_hardware(new Hardware()),
+    m_audio(new Audio()),
     m_captureDevice(NULL),
     m_callibrating(false)
 {
@@ -49,11 +51,15 @@ void Controller::setCaptureDevice(const QString &path)
 void Controller::startProcessing()
 {
     m_processTimer.start();
+
+    m_audio->playRandom(Audio::Deploy);
 }
 
 void Controller::stopProcessing()
 {
     m_processTimer.stop();
+
+    m_audio->playRandom(Audio::Retire);
 }
 
 void Controller::startCallibration(Hardware::Pantilt pantilt)

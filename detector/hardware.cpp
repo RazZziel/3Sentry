@@ -28,7 +28,7 @@ bool Hardware::currentPosition(Pantilt pantilt, uint &x, uint &y)
     return false;
 }
 
-bool Hardware::target(uint pantilt, uint x, uint y)
+bool Hardware::targetAbsolute(uint pantilt, uint x, uint y)
 {
     Q_UNUSED(pantilt);
     Q_UNUSED(x);

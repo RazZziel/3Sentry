@@ -9,6 +9,7 @@
 
 class Detector;
 class Hardware;
+class Audio;
 
 class Controller : public QObject
 {
@@ -32,6 +33,7 @@ private:
 
     QList<Detector*> m_detectors;
     Hardware *m_hardware;
+    Audio *m_audio;
 
     cv::VideoCapture* m_captureDevice;
     cv::Mat m_currentFrame;

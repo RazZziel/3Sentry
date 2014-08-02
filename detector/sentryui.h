@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <cv.h>
 
+class QCloseEvent;
 class Controller;
 
 namespace Ui {
@@ -17,6 +18,8 @@ class SentryUI : public QMainWindow
 public:
     explicit SentryUI(Controller *controller, QWidget *parent = 0);
     ~SentryUI();
+
+    void closeEvent(QCloseEvent *event);
 
 public slots:
     void onNewOpenCVFrame(cv::Mat image);
