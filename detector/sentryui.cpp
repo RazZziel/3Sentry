@@ -7,6 +7,7 @@
 #include "sentryui.h"
 #include "ui_sentryui.h"
 #include "controller.h"
+#include "detector/detector.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     QMainWindow(parent),
@@ -27,6 +28,11 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
 
     if (QApplication::instance()->arguments().count() > 1)
         m_controller->setCaptureDevice(QApplication::instance()->arguments().value(1));
+
+    foreach (Detector *detector, m_controller->detectors())
+    {
+        ui->lstDetectors->addItem(detector->name());
+    }
 
     m_controller->startProcessing();
 }
