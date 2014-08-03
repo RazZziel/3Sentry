@@ -19,7 +19,9 @@ public:
 
     QList<Detector*> detectors();
 
-    void setCaptureDevice(const QString &path);
+    int numCaptureDevices();
+    bool setCaptureDevice(int device);
+    bool setCaptureDevice(const QString &filename);
 
 public slots:
     void startProcessing();

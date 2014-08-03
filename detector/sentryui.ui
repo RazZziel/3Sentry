@@ -14,9 +14,23 @@
    <string>3Sentry</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
     <item>
      <widget class="CQtOpenCVViewerGl" name="wOpenCV" native="true"/>
+    </item>
+    <item>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Video input</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cmbCaptureDevice"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

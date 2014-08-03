@@ -10,7 +10,7 @@ Controller::Controller(QObject *parent) :
     QObject(parent),
     m_hardware(new Hardware()),
     m_audio(new Audio()),
-    m_captureDevice(NULL),
+    m_captureDevice(new cv::VideoCapture()),
     m_callibrating(false)
 {
     m_detectors << new MovementDetector(this)
@@ -27,25 +27,24 @@ QList<Detector*> Controller::detectors()
     return m_detectors;
 }
 
-void Controller::setCaptureDevice(const QString &path)
+bool Controller::setCaptureDevice(int device)
 {
-    if (m_captureDevice)
+    if (m_captureDevice->isOpened())
     {
         m_captureDevice->release();
-        delete m_captureDevice;
-        m_captureDevice = NULL;
     }
 
-    bool ok;
-    int cam = path.toInt(&ok);
-    if (ok)
+    return m_captureDevice->open(device);
+}
+
+bool Controller::setCaptureDevice(const QString &filename)
+{
+    if (m_captureDevice->isOpened())
     {
-        m_captureDevice = new cv::VideoCapture(cam);
+        m_captureDevice->release();
     }
-    else
-    {
-        m_captureDevice = new cv::VideoCapture(path.toStdString());
-    }
+
+    return m_captureDevice->open(filename.toStdString());
 }
 
 void Controller::startProcessing()
@@ -105,10 +104,8 @@ bool Controller::stopFiring(Hardware::Gun gun)
 
 void Controller::process()
 {
-    if (!m_captureDevice)
+    if (!m_captureDevice->isOpened())
     {
-        qCritical() << "No capture device";
-        stopProcessing();
         return;
     }
 
@@ -136,4 +133,20 @@ void Controller::process()
     emit newOpenCVFrame(m_currentFrame);
 
     m_processTimer.start();
+}
+
+int Controller::numCaptureDevices()
+{
+    int maxTested = 10;
+    for (int i = 0; i < maxTested; i++)
+    {
+        cv::VideoCapture temp_camera(i);
+        bool isOpened = temp_camera.isOpened();
+        temp_camera.release();
+        if (!isOpened)
+        {
+            return i;
+        }
+    }
+    return maxTested;
 }
