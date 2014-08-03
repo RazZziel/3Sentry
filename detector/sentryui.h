@@ -28,6 +28,7 @@ private:
 private slots:
     void onNewOpenCVFrame(cv::Mat image);
     void onCaptureDeviceChanged(int index);
+    void on_lstDetectors_activated(const QModelIndex &index);
 };
 
 #endif // SENTRYUI_H

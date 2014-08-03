@@ -88,3 +88,11 @@ void SentryUI::onCaptureDeviceChanged(int index)
         }
     }
 }
+
+void SentryUI::on_lstDetectors_activated(const QModelIndex &index)
+{
+    Detector *detector = m_controller->detectors().value(index.row());
+    QVariantMap parameters = detector->getParameters();
+    Q_UNUSED(parameters);
+    //ui->tblProperties->somethingsomething
+}
