@@ -3,7 +3,8 @@
 #include "controller.h"
 #include "trackface/trackface.h"
 #include "sentryui.h"
-#include "webui.h"
+#include "sentryweb.h"
+#include "sentryinput.h"
 
 int main(int argc, char** argv)
 {
@@ -18,9 +19,15 @@ int main(int argc, char** argv)
     Controller controller;
 
     QApplication a(argc, argv);
-    SentryUI w(&controller);
-    WebUI h(&controller);
-    w.show();
+
+    SentryUI ui(&controller);
+    SentryWeb web(&controller);
+    SentryInput input(&controller);
+
+    ui.show();
+    Q_UNUSED(web);
+    Q_UNUSED(input);
+
     return a.exec();
 #endif
 }

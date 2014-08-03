@@ -21,12 +21,18 @@ public:
 
     void setCaptureDevice(const QString &path);
 
+public slots:
     void startProcessing();
     void stopProcessing();
 
     void startCallibration(Hardware::Pantilt pantilt);
     void nextCallibrationPoint();
     void abortCallibration();
+
+    bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
+    bool targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy);
+    bool enableFiring(Hardware::Gun gun);
+    bool stopFiring(Hardware::Gun gun);
 
 private:
     QTimer m_processTimer;

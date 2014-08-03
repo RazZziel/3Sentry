@@ -20,7 +20,8 @@ SOURCES += \
     ui/cqtopencvviewergl.cpp \
     sentryui.cpp \
     audio.cpp \
-    webui.cpp
+    sentryweb.cpp \
+    sentryinput.cpp
 HEADERS += \
     trackface/camshifting.h \
     trackface/trackface.h \
@@ -34,7 +35,8 @@ HEADERS += \
     ui/cqtopencvviewergl.h \
     sentryui.h \
     audio.h \
-    webui.h
+    sentryweb.h \
+    sentryinput.h
 
 FORMS += \
     sentryui.ui

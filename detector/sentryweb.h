@@ -6,11 +6,11 @@
 
 class Controller;
 
-class WebUI : public HttpDaemon
+class SentryWeb : public HttpDaemon
 {
     Q_OBJECT
 public:
-    explicit WebUI(Controller *controller = 0);
+    explicit SentryWeb(Controller *controller);
 
 private:
     void processHTTPRequest(HTTPRequest &request, HTTPReply &reply);

@@ -1,11 +1,11 @@
-#include "webui.h"
+#include "sentryweb.h"
 #include "controller.h"
 #include "httpd/httprequest.h"
 #include "httpd/httpreply.h"
 
 #define MJPEG_BOUNDARY "--badmotherfucker--"
 
-WebUI::WebUI(Controller *controller) :
+SentryWeb::SentryWeb(Controller *controller) :
     HttpDaemon(8008, controller),
     m_controller(controller)
 {
@@ -14,7 +14,7 @@ WebUI::WebUI(Controller *controller) :
 }
 
 #include <QEventLoop>
-void WebUI::processHTTPRequest(HTTPRequest &request, HTTPReply &reply)
+void SentryWeb::processHTTPRequest(HTTPRequest &request, HTTPReply &reply)
 {
     QVariantMap headers;
     headers.insert("Cache-Control", "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0");
@@ -44,7 +44,7 @@ void WebUI::processHTTPRequest(HTTPRequest &request, HTTPReply &reply)
 }
 
 #include <QBuffer>
-void WebUI::onNewOpenCVFrame(cv::Mat image)
+void SentryWeb::onNewOpenCVFrame(cv::Mat image)
 {
     QBuffer buffer(&m_imageData);
     buffer.open(QIODevice::WriteOnly);

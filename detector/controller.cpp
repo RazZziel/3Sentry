@@ -81,6 +81,28 @@ void Controller::abortCallibration()
     m_callibrating = false;
 }
 
+
+bool Controller::targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y)
+{
+    return m_hardware->targetAbsolute(pantilt, x, y);
+}
+
+bool Controller::targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy)
+{
+    return m_hardware->targetRelative(pantilt, dx, dy);
+}
+
+bool Controller::enableFiring(Hardware::Gun gun)
+{
+    return m_hardware->enableFiring(gun);
+}
+
+bool Controller::stopFiring(Hardware::Gun gun)
+{
+    return m_hardware->stopFiring(gun);
+}
+
+
 void Controller::process()
 {
     if (!m_captureDevice)
