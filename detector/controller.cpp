@@ -20,6 +20,11 @@ Controller::Controller(QObject *parent) :
 
     m_processTimer.setInterval(50);
     connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
+
+    foreach (Detector *detector, m_detectors)
+    {
+        m_objectColors.insert(detector, cv::Scalar(qrand()&255, qrand()&255, qrand()&255));
+    }
 }
 
 QList<Detector*> Controller::detectors()
@@ -115,18 +120,67 @@ void Controller::process()
 
     if (m_callibrating)
     {
-
+        // TODO
     }
     else
     {
+        int targetRadius = 30;
+        cv::Scalar potentialTargetColor = CV_RGB(255,255,255);
+        cv::Scalar currentTargetColor = CV_RGB(255,0,0);
+
         foreach (Detector *detector, m_detectors)
         {
             if (detector->isEnabled())
             {
                 QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
 
-                Q_UNUSED(detectedObjects);
+                foreach (const cv::Rect &object, detectedObjects)
+                {
+                    cv::Scalar color = m_objectColors.value(detector);
+
+                    cv::rectangle(m_currentFrame, object, color, 1, CV_AA, 0);
+
+                    if (true) // TODO: Filter potential targets
+                    {
+                        cv::Point center(object.tl().x+object.width/2,
+                                         object.tl().y+object.height/2);
+
+                        cv::circle(m_currentFrame,
+                                   center,
+                                   targetRadius,
+                                   potentialTargetColor,
+                                   3, CV_AA, 0);
+
+                        m_currentTarget = center; // TODO: Select current target
+                    }
+                }
             }
+        }
+
+        // Draw current target
+        if (m_currentTarget.x>0 && m_currentTarget.y>0)
+        {
+            cv::circle(m_currentFrame,
+                       m_currentTarget,
+                       targetRadius,
+                       currentTargetColor,
+                       2, CV_AA, 0);
+
+            cv::line(m_currentFrame,
+                     cv::Point(m_currentTarget.x-targetRadius,
+                               m_currentTarget.y),
+                     cv::Point(m_currentTarget.x+targetRadius,
+                               m_currentTarget.y),
+                     currentTargetColor,
+                     2, CV_AA, 0);
+
+            cv::line(m_currentFrame,
+                     cv::Point(m_currentTarget.x,
+                               m_currentTarget.y-targetRadius),
+                     cv::Point(m_currentTarget.x,
+                               m_currentTarget.y+targetRadius),
+                     currentTargetColor,
+                     2, CV_AA, 0);
         }
     }
 

@@ -50,6 +50,9 @@ private:
     Hardware::Pantilt m_currentPantiltCallibrating;
     Hardware::CalibrationData m_callibrationData;
 
+    QMap<Detector*, cv::Scalar> m_objectColors;
+    cv::Point m_currentTarget;
+
 private slots:
     void process();
 

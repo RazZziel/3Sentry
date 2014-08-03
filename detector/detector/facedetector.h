@@ -11,6 +11,9 @@ public:
 
     QString name();
     QList<cv::Rect> detect(const cv::Mat& image) const;
+
+private:
+    cv::CascadeClassifier* m_classifier;
 };
 
 #endif // FACEDETECTOR_H
