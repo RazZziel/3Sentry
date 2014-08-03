@@ -21,12 +21,12 @@ public:
 
     void closeEvent(QCloseEvent *event);
 
-public slots:
-    void onNewOpenCVFrame(cv::Mat image);
-
 private:
     Ui::SentryUI *ui;
     Controller *m_controller;
+
+private slots:
+    void onNewOpenCVFrame(cv::Mat image);
 };
 
 #endif // SENTRYUI_H
