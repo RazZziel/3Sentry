@@ -38,6 +38,12 @@ public slots:
     bool stopFiring(Hardware::Gun gun);
 
 private:
+    void drawCrosshair(cv::Mat &image,
+                       const cv::Point &center,
+                       int radius,
+                       cv::Scalar color,
+                       int thickness);
+
     QTimer m_processTimer;
 
     QList<Detector*> m_detectors;
@@ -53,9 +59,12 @@ private:
 
     QMap<Detector*, cv::Scalar> m_objectColors;
     cv::Point m_currentTarget;
+    cv::Point m_currentBodyPosition;
+    cv::Point m_currentEyePosition;
 
 private slots:
     void process();
+    void onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y);
 
 signals:
     void newOpenCVFrame(cv::Mat image);

@@ -1,12 +1,14 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
+#include <QObject>
 #include <QMap>
 #include <QPoint>
 #include <QMatrix2x3>
 
-class Hardware
+class Hardware : public QObject
 {
+    Q_OBJECT
 public:
     Hardware();
 
@@ -38,6 +40,9 @@ private:
     QPoint calibratePoint(QPoint XYonCam);
 
     QMatrix2x3 m_calibrationMatrix;
+
+signals:
+    void currentPositionChanged(Pantilt pantilt, int x, int y);
 };
 
 #endif // HARDWARE_H

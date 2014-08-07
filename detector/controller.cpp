@@ -26,6 +26,17 @@ Controller::Controller(QObject *parent) :
 
     m_processTimer.setInterval(50);
     connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
+
+
+    m_hardware->currentPosition(Hardware::Body,
+                                (uint&) m_currentBodyPosition.x,
+                                (uint&) m_currentBodyPosition.y);
+    m_hardware->currentPosition(Hardware::Eye,
+                                (uint&) m_currentEyePosition.x,
+                                (uint&) m_currentEyePosition.y);
+    connect(m_hardware,
+            SIGNAL(currentPositionChanged(Hardware::Pantilt,int,int)),
+            SLOT(onCurrentPositionChanged(Hardware::Pantilt,int,int)));
 }
 
 QList<Detector*> Controller::detectors()
@@ -170,33 +181,46 @@ void Controller::process()
         // Draw current target
         if (m_currentTarget.x>0 && m_currentTarget.y>0)
         {
-            cv::circle(m_currentFrame,
-                       m_currentTarget,
-                       targetRadius,
-                       currentTargetColor,
-                       2, CV_AA, 0);
-
-            cv::line(m_currentFrame,
-                     cv::Point(m_currentTarget.x-targetRadius,
-                               m_currentTarget.y),
-                     cv::Point(m_currentTarget.x+targetRadius,
-                               m_currentTarget.y),
-                     currentTargetColor,
-                     2, CV_AA, 0);
-
-            cv::line(m_currentFrame,
-                     cv::Point(m_currentTarget.x,
-                               m_currentTarget.y-targetRadius),
-                     cv::Point(m_currentTarget.x,
-                               m_currentTarget.y+targetRadius),
-                     currentTargetColor,
-                     2, CV_AA, 0);
+            drawCrosshair(m_currentFrame,
+                          m_currentTarget,
+                          targetRadius,
+                          currentTargetColor,
+                          2);
         }
+
+        drawCrosshair(m_currentFrame,
+                      m_currentBodyPosition,
+                      10,
+                      CV_RGB(200,200,200),
+                      1);
+
+        drawCrosshair(m_currentFrame,
+                      m_currentEyePosition,
+                      10,
+                      CV_RGB(240,10,10),
+                      1);
     }
 
     emit newOpenCVFrame(m_currentFrame);
 
     m_processTimer.start();
+}
+
+void Controller::onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y)
+{
+    switch (pantilt)
+    {
+    case Hardware::Body:
+        m_currentBodyPosition.x = x;
+        m_currentBodyPosition.y = y;
+        break;
+    case Hardware::Eye:
+        m_currentEyePosition.x = x;
+        m_currentEyePosition.y = y;
+        break;
+    default:
+        break;
+    }
 }
 
 int Controller::numCaptureDevices()
@@ -213,4 +237,36 @@ int Controller::numCaptureDevices()
         }
     }
     return maxTested;
+}
+
+void Controller::drawCrosshair(cv::Mat &image,
+                               const cv::Point &center,
+                               int radius,
+                               cv::Scalar color,
+                               int thickness)
+{
+    cv::circle(image,
+               center,
+               radius,
+               color,
+               thickness,
+               CV_AA, 0);
+
+    cv::line(image,
+             cv::Point(center.x-radius,
+                       center.y),
+             cv::Point(center.x+radius,
+                       center.y),
+             color,
+             thickness,
+             CV_AA, 0);
+
+    cv::line(image,
+             cv::Point(center.x,
+                       center.y-radius),
+             cv::Point(center.x,
+                       center.y+radius),
+             color,
+             thickness,
+             CV_AA, 0);
 }
