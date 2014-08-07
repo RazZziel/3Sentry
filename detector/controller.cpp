@@ -61,14 +61,14 @@ void Controller::startProcessing()
 {
     m_processTimer.start();
 
-    m_audio->playRandom(Audio::Deploy);
+    m_audio->play(Audio::Autosearch);
 }
 
 void Controller::stopProcessing()
 {
     m_processTimer.stop();
 
-    m_audio->playRandom(Audio::Retire);
+    m_audio->play(Audio::Retire);
 }
 
 void Controller::startCallibration(Hardware::Pantilt pantilt)

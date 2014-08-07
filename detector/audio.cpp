@@ -24,9 +24,9 @@ bool Audio::isPlaying()
             status != QMediaPlayer::EndOfMedia);
 }
 
-void Audio::playRandom(Type type)
+void Audio::play(Type type, int index)
 {
-    QString filename = getRandomFilename(type);
+    QString filename = getFilename(type, index);
 
     qDebug() << "Playing" << filename;
 
@@ -35,7 +35,7 @@ void Audio::playRandom(Type type)
 }
 
 
-QString Audio::getRandomFilename(Type type)
+QString Audio::getFilename(Type type, int index)
 {
     QMetaObject metaObject = Audio::staticMetaObject;
     QMetaEnum metaEnum = metaObject.enumerator(metaObject.indexOfEnumerator("Type"));
@@ -46,7 +46,12 @@ QString Audio::getRandomFilename(Type type)
                                                            QDir::Files | QDir::Readable,
                                                            QDir::Unsorted);
 
-    QFileInfo randomFile = entries.value(qrand() % entries.count());
+    if (index < 0 || index >= entries.count())
+    {
+        index = qrand() % entries.count();
+    }
+
+    QFileInfo randomFile = entries.value(index);
 
     return randomFile.absoluteFilePath();
 }

@@ -18,10 +18,10 @@ public:
 
     bool isPlaying();
 
-    void playRandom(Type type);
+    void play(Type type, int index=-1);
 
 private:
-    QString getRandomFilename(Type type);
+    QString getFilename(Type type, int index=-1);
 
     QMediaPlayer *m_player;
 };
