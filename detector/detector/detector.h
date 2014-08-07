@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtCore>
 #include <cv.h>
-#include <QVariantMap>
+#include "detectorparameter.h"
 
 class Detector : public QObject
 {
@@ -18,16 +18,19 @@ public:
     void setEnabled(bool enabled);
     bool isEnabled();
 
-    QVariantMap getParameters() const;
+    DetectorParameterMap getParameters() const;
     void setParameter(const QString &name, const QVariant &value);
 
-    void loadParameters();
+    void loadParameterValues();
 
 protected:
+    virtual DetectorParameterList createParameters() const;
+
     bool m_enabled;
-    QVariantMap m_parameters;
+    DetectorParameterMap m_parameters;
 
 private:
+    void init();
     void saveParameter(const QString &name, const QVariant &value);
 };
 

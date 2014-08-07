@@ -17,3 +17,9 @@ QList<cv::Rect> MovementDetector::detect(const cv::Mat& image) const
     Q_UNUSED(image);
     return QList<cv::Rect>();
 }
+
+DetectorParameterList MovementDetector::createParameters() const
+{
+    DetectorParameterList list = Detector::createParameters();
+    return list;
+}

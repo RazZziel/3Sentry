@@ -15,13 +15,15 @@ SOURCES += \
     detector/detector.cpp \
     detector/movementdetector.cpp \
     detector/colordetector.cpp \
+    detector/cascadeclassifierdetector.cpp \
     detector/facedetector.cpp \
     detector/bodydetector.cpp \
     ui/cqtopencvviewergl.cpp \
     sentryui.cpp \
     audio.cpp \
     sentryweb.cpp \
-    sentryinput.cpp
+    sentryinput.cpp \
+    detector/detectorparameter.cpp
 HEADERS += \
     trackface/camshifting.h \
     trackface/trackface.h \
@@ -30,13 +32,15 @@ HEADERS += \
     detector/detector.h \
     detector/movementdetector.h \
     detector/colordetector.h \
+    detector/cascadeclassifierdetector.h \
     detector/facedetector.h \
     detector/bodydetector.h \
     ui/cqtopencvviewergl.h \
     sentryui.h \
     audio.h \
     sentryweb.h \
-    sentryinput.h
+    sentryinput.h \
+    detector/detectorparameter.h
 
 FORMS += \
     sentryui.ui

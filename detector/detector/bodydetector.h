@@ -1,16 +1,15 @@
 #ifndef BODYDETECTOR_H
 #define BODYDETECTOR_H
 
-#include "detector.h"
+#include "cascadeclassifierdetector.h"
 
-class BodyDetector : public Detector
+class BodyDetector : public CascadeClassifierDetector
 {
     Q_OBJECT
 public:
     BodyDetector(QObject *parent=0);
 
     QString name();
-    QList<cv::Rect> detect(const cv::Mat& image) const;
 };
 
 #endif // BODYDETECTOR_H

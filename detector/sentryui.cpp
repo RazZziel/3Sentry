@@ -9,6 +9,7 @@
 #include "controller.h"
 #include "audio.h"
 #include "detector/detector.h"
+#include "detector/detectorparameter.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     QMainWindow(parent),
@@ -95,7 +96,7 @@ void SentryUI::onCaptureDeviceChanged(int index)
 void SentryUI::on_lstDetectors_activated(const QModelIndex &index)
 {
     Detector *detector = m_controller->detectors().value(index.row());
-    QVariantMap parameters = detector->getParameters();
+    DetectorParameterMap parameters = detector->getParameters();
     Q_UNUSED(parameters);
     //ui->tblProperties->somethingsomething
 }
