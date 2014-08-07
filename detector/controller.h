@@ -18,6 +18,7 @@ public:
     Controller(QObject *parent=0);
 
     QList<Detector*> detectors();
+    Audio *audio();
 
     int numCaptureDevices();
     bool setCaptureDevice(int device);

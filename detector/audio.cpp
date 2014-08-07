@@ -16,6 +16,14 @@ Audio::Audio(QObject *parent) :
     qsrand(QTime::currentTime().msec());
 }
 
+bool Audio::isPlaying()
+{
+    QMediaPlayer::MediaStatus status = m_player->mediaStatus();
+
+    return (status != QMediaPlayer::NoMedia &&
+            status != QMediaPlayer::EndOfMedia);
+}
+
 void Audio::playRandom(Type type)
 {
     QString filename = getRandomFilename(type);

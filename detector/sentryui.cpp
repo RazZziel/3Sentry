@@ -7,6 +7,7 @@
 #include "sentryui.h"
 #include "ui_sentryui.h"
 #include "controller.h"
+#include "audio.h"
 #include "detector/detector.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
@@ -50,7 +51,9 @@ void SentryUI::onNewOpenCVFrame(cv::Mat image)
 void SentryUI::closeEvent(QCloseEvent *event)
 {
     m_controller->stopProcessing();
-    sleep(2); // OBNOXIOUS HACK: Wait for audio to play (should try m_player->isAudioAvailable())
+    hide();
+    while (m_controller->audio()->isPlaying())
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
     event->accept();
 }
 

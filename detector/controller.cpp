@@ -32,6 +32,11 @@ QList<Detector*> Controller::detectors()
     return m_detectors;
 }
 
+Audio *Controller::audio()
+{
+    return m_audio;
+}
+
 bool Controller::setCaptureDevice(int device)
 {
     if (m_captureDevice->isOpened())

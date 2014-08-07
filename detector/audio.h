@@ -16,6 +16,8 @@ public:
 
     explicit Audio(QObject *parent = 0);
 
+    bool isPlaying();
+
     void playRandom(Type type);
 
 private:
