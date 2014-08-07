@@ -9,7 +9,7 @@ class MovementDetector : public Detector
 public:
     MovementDetector(QObject *parent=0);
 
-    QString name();
+    QString name() const;
     QList<cv::Rect> detect(const cv::Mat& image) const;
 
 private:

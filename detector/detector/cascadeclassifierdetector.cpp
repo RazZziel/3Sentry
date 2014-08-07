@@ -11,7 +11,7 @@ CascadeClassifierDetector::CascadeClassifierDetector(const QString &filename, QO
 #endif
 }
 
-QString CascadeClassifierDetector::name()
+QString CascadeClassifierDetector::name() const
 {
     return tr("Cascade classifier detector");
 }
@@ -22,15 +22,30 @@ QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
     std::vector<int> rejectLevels;
     std::vector<double> levelWeights;
 
-    m_classifier->detectMultiScale(image,
-                                   objects,
-                                   rejectLevels,
-                                   levelWeights,
-                                   1.1,                       //increase search scale by 10% each pass
-                                   6,                         //require 6 neighbors
-                                   CV_HAAR_DO_CANNY_PRUNING,  //skip regions unlikely to contain a face
-                                   cv::Size(100, 100),            //use default face size from xml
-                                   cv::Size(500, 500));
+    double scaleFactor = m_parameters.value("scaleFactor").m_value.toDouble();
+    int minNeighbors = m_parameters.value("minNeighbors").m_value.toInt();
+
+    int minWidth = m_parameters.value("minWidth").m_value.toInt();
+    int minHeight = m_parameters.value("minHeight").m_value.toInt();
+    int maxWidth = m_parameters.value("maxWidth").m_value.toInt();
+    int maxHeight = m_parameters.value("maxHeight").m_value.toInt();
+
+    try
+    {
+        m_classifier->detectMultiScale(image,
+                                       objects,
+                                       rejectLevels,
+                                       levelWeights,
+                                       scaleFactor,
+                                       minNeighbors,
+                                       CV_HAAR_DO_CANNY_PRUNING,  // skip regions unlikely to contain an object
+                                       cv::Size(minWidth, minHeight),
+                                       cv::Size(maxWidth, maxHeight));
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << name() << "failed:" << QString::fromStdString(e.msg);
+    }
 
     QList<cv::Rect> objectList;
     for (uint i=0; i<objects.size(); ++i)
@@ -44,19 +59,34 @@ QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
 DetectorParameterList CascadeClassifierDetector::createParameters() const
 {
     DetectorParameterList list = Detector::createParameters();
-    list << DetectorParameter("limitWidth", tr("Limit width"), DetectorParameter::Boolean, true)
-         << DetectorParameter("minWidth", tr("Minimum width"), DetectorParameter::Integer, 100, 0, 1000)
-         << DetectorParameter("maxWidth", tr("Maximum width"), DetectorParameter::Integer, 500, 0, 1000)
+    list << DetectorParameter("scaleFactor", tr("Scale factor"), DetectorParameter::Real, 1.1, 0, 1000)
+         << DetectorParameter("minNeighbors", tr("Maximum neighboors"), DetectorParameter::Integer, 6, 0, 10);
+    return list;
+}
 
-         << DetectorParameter("limitHeight", tr("Limit height"), DetectorParameter::Boolean, true)
-         << DetectorParameter("minHeight", tr("Minimum height"), DetectorParameter::Integer, 100, 0, 1000)
-         << DetectorParameter("maxHeight", tr("Maximum height"), DetectorParameter::Integer, 500, 0, 1000)
+QList<cv::Rect> CascadeClassifierDetector::filterResults(const QList<cv::Rect> &objects) const
+{
+    // Height and width are already trimmed down by the cascade classifier
 
-         << DetectorParameter("limitArea", tr("Limit area"), DetectorParameter::Boolean, false)
-         << DetectorParameter("minArea", tr("Minimum height"), DetectorParameter::Integer, 10000, 0, 1000)
-         << DetectorParameter("maxArea", tr("Maximum height"), DetectorParameter::Integer, 250000, 0, 1000)
+    bool limitArea = m_parameters.value("limitArea").m_value.toBool();
+    int minArea = m_parameters.value("minArea").m_value.toInt();
+    int maxArea = m_parameters.value("maxArea").m_value.toInt();
 
-         << DetectorParameter("scaleFactor", tr("Scale factor"), DetectorParameter::Real, 1.1, 0, 1000)
-         << DetectorParameter("minNeighboors", tr("Maximum neighboors"), DetectorParameter::Integer, 6, 0, 10);
+    QList<cv::Rect> list;
+
+    foreach (const cv::Rect &object, objects)
+    {
+        if (limitArea)
+        {
+            int area = object.area();
+            if (area < minArea || area > maxArea)
+            {
+                continue;
+            }
+        }
+
+        list << object;
+    }
+
     return list;
 }

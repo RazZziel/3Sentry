@@ -23,7 +23,8 @@ SOURCES += \
     audio.cpp \
     sentryweb.cpp \
     sentryinput.cpp \
-    detector/detectorparameter.cpp
+    detector/detectorparameter.cpp \
+    ui/detectorparameterwidget.cpp
 HEADERS += \
     trackface/camshifting.h \
     trackface/trackface.h \
@@ -40,10 +41,12 @@ HEADERS += \
     audio.h \
     sentryweb.h \
     sentryinput.h \
-    detector/detectorparameter.h
+    detector/detectorparameter.h \
+    ui/detectorparameterwidget.h
 
 FORMS += \
-    sentryui.ui
+    sentryui.ui \
+    ui/detectorparameterwidget.ui
 
 
 SOURCES += \

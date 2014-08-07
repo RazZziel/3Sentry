@@ -9,7 +9,7 @@ class BodyDetector : public CascadeClassifierDetector
 public:
     BodyDetector(QObject *parent=0);
 
-    QString name();
+    QString name() const;
 };
 
 #endif // BODYDETECTOR_H

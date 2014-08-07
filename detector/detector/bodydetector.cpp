@@ -5,7 +5,7 @@ BodyDetector::BodyDetector(QObject *parent) :
 {
 }
 
-QString BodyDetector::name()
+QString BodyDetector::name() const
 {
     return tr("Body detector");
 }

@@ -5,7 +5,7 @@ ColorDetector::ColorDetector(QObject *parent) :
 {
 }
 
-QString ColorDetector::name()
+QString ColorDetector::name() const
 {
     return tr("Color detector");
 }

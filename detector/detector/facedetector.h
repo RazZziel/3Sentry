@@ -9,7 +9,7 @@ class FaceDetector : public CascadeClassifierDetector
 public:
     FaceDetector(QObject *parent=0);
 
-    QString name();
+    QString name() const;
 };
 
 #endif // FACEDETECTOR_H

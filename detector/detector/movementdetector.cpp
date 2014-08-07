@@ -5,7 +5,7 @@ MovementDetector::MovementDetector(QObject *parent) :
 {
 }
 
-QString MovementDetector::name()
+QString MovementDetector::name() const
 {
     return tr("Movement detector");
 }

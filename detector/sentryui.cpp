@@ -10,6 +10,7 @@
 #include "audio.h"
 #include "detector/detector.h"
 #include "detector/detectorparameter.h"
+#include "ui/detectorparameterwidget.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     QMainWindow(parent),
@@ -29,12 +30,16 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     connect(ui->cmbCaptureDevice, SIGNAL(activated(int)), SLOT(onCaptureDeviceChanged(int)));
 
     if (QApplication::instance()->arguments().count() > 1)
+    {
         m_controller->setCaptureDevice(QApplication::instance()->arguments().value(1));
+    }
 
     foreach (Detector *detector, m_controller->detectors())
     {
         ui->lstDetectors->addItem(detector->name());
     }
+    connect(ui->lstDetectors, SIGNAL(activated(QModelIndex)), SLOT(updateDetectorParameters()));
+    updateDetectorParameters();
 
     m_controller->startProcessing();
 }
@@ -93,10 +98,35 @@ void SentryUI::onCaptureDeviceChanged(int index)
     }
 }
 
-void SentryUI::on_lstDetectors_activated(const QModelIndex &index)
+void SentryUI::updateDetectorParameters()
 {
-    Detector *detector = m_controller->detectors().value(index.row());
-    DetectorParameterMap parameters = detector->getParameters();
-    Q_UNUSED(parameters);
-    //ui->tblProperties->somethingsomething
+    clearLayout(ui->formLayout_detectorProperties);
+
+    if (ui->lstDetectors->currentRow() == -1)
+        return;
+
+    Detector *detector = m_controller->detectors().value(ui->lstDetectors->currentRow());
+    DetectorParameterMap &parameters = detector->getParameters();
+
+    foreach (const QString &key, parameters.keys())
+    {
+        DetectorParameter &parameter = parameters[key];
+        DetectorParameterWidget *w = new DetectorParameterWidget(parameter, this);
+        ui->formLayout_detectorProperties->addRow(parameter.m_name, w);
+
+        // TODO: Don't save every single value, only the one modified
+        connect(w, SIGNAL(dataChanged()), detector, SLOT(saveParameterValues()));
+    }
+}
+
+void SentryUI::clearLayout(QLayout *layout, int start)
+{
+    int items = layout->count();
+    for (int i=start; i<items; ++i)
+    {
+        QLayoutItem *child = layout->takeAt(start);
+        child->widget()->close();
+        delete child->widget();
+        delete child;
+    }
 }

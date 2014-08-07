@@ -5,7 +5,7 @@ FaceDetector::FaceDetector(QObject *parent) :
 {
 }
 
-QString FaceDetector::name()
+QString FaceDetector::name() const
 {
     return tr("Face detector");
 }

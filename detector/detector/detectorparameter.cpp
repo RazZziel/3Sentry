@@ -11,7 +11,7 @@ DetectorParameter::DetectorParameter(const QString &code,
     m_code(code),
     m_name(name),
     m_type(type),
-    m_value(QVariant()),
+    m_value(defaultValue),
     m_defaultValue(defaultValue),
     m_minValue(minValue),
     m_maxValue(maxValue)

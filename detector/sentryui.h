@@ -22,13 +22,15 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
+    void clearLayout(QLayout *layout, int start=0);
+
     Ui::SentryUI *ui;
     Controller *m_controller;
 
 private slots:
     void onNewOpenCVFrame(cv::Mat image);
     void onCaptureDeviceChanged(int index);
-    void on_lstDetectors_activated(const QModelIndex &index);
+    void updateDetectorParameters();
 };
 
 #endif // SENTRYUI_H

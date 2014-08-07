@@ -18,13 +18,14 @@ Controller::Controller(QObject *parent) :
                 << new BodyDetector(this)
                 << new FaceDetector(this);
 
-    m_processTimer.setInterval(50);
-    connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
-
     foreach (Detector *detector, m_detectors)
     {
+        detector->init();
         m_objectColors.insert(detector, cv::Scalar(qrand()&255, qrand()&255, qrand()&255));
     }
+
+    m_processTimer.setInterval(50);
+    connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
 }
 
 QList<Detector*> Controller::detectors()
@@ -121,7 +122,11 @@ void Controller::process()
 
     m_processTimer.stop();
 
-    m_captureDevice->read(m_currentFrame);
+    if (!m_captureDevice->read(m_currentFrame))
+    {
+        qWarning() << "Could not capture frame";
+        return;
+    }
 
     if (m_callibrating)
     {
