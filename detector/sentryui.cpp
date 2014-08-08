@@ -49,6 +49,9 @@ SentryUI::~SentryUI()
 
 void SentryUI::onNewOpenCVFrame(cv::Mat image)
 {
+    ui->wOpenCV->setMinimumSize(image.cols, image.rows);
+    ui->wOpenCV->setMaximumSize(image.cols, image.rows);
+    adjustSize();
     ui->wOpenCV->showImage(image);
 }
 
