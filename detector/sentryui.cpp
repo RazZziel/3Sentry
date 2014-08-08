@@ -40,8 +40,6 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     }
     connect(ui->lstDetectors, SIGNAL(activated(QModelIndex)), SLOT(updateDetectorParameters()));
     updateDetectorParameters();
-
-    m_controller->startProcessing();
 }
 
 SentryUI::~SentryUI()
@@ -56,11 +54,8 @@ void SentryUI::onNewOpenCVFrame(cv::Mat image)
 
 void SentryUI::closeEvent(QCloseEvent *event)
 {
-    m_controller->stopProcessing();
-    hide();
-    while (m_controller->audio()->isPlaying())
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
     event->accept();
+    m_controller->stopProcessing();
 }
 
 void SentryUI::onCaptureDeviceChanged(int index)

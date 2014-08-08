@@ -34,9 +34,8 @@ Controller::Controller(QObject *parent) :
     m_hardware->currentPosition(Hardware::Eye,
                                 (uint&) m_currentEyePosition.x,
                                 (uint&) m_currentEyePosition.y);
-    connect(m_hardware,
-            SIGNAL(currentPositionChanged(Hardware::Pantilt,int,int)),
-            SLOT(onCurrentPositionChanged(Hardware::Pantilt,int,int)));
+    connect(m_hardware, &Hardware::currentPositionChanged,
+            this, &Controller::onCurrentPositionChanged);
 }
 
 QList<Detector*> Controller::detectors()
@@ -81,6 +80,9 @@ void Controller::stopProcessing()
     m_processTimer.stop();
 
     m_audio->play(Audio::Retire);
+
+    while (m_audio->isPlaying())
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
 }
 
 void Controller::startCallibration(Hardware::Pantilt pantilt)

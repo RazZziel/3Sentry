@@ -1,7 +1,6 @@
 #include <QApplication>
 
 #include "controller.h"
-#include "trackface/trackface.h"
 #include "sentryui.h"
 #include "sentryweb.h"
 #include "sentryinput.h"
@@ -13,21 +12,28 @@ int main(int argc, char** argv)
     QCoreApplication::setApplicationName("3Sentry");
     QCoreApplication::setApplicationVersion("0.0.1");
 
-#if 0
-    return trackface(argc, argv);
-#else
-    Controller controller;
-
     QApplication a(argc, argv);
 
-    SentryUI ui(&controller);
-    SentryWeb web(&controller);
-    SentryInput input(&controller);
 
-    ui.show();
+    Controller controller;
+
+    SentryWeb web(&controller);
     Q_UNUSED(web);
+
+    SentryInput input(&controller);
     Q_UNUSED(input);
 
-    return a.exec();
+    controller.startProcessing();
+
+#if 1
+    SentryUI ui(&controller);
+    ui.show();
 #endif
+
+
+    bool ret = a.exec();
+
+    //controller.stopProcessing();
+
+    return ret;
 }

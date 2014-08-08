@@ -30,6 +30,7 @@ bool Hardware::currentPosition(Pantilt pantilt, uint &x, uint &y)
 
 bool Hardware::targetAbsolute(Pantilt pantilt, uint x, uint y)
 {
+
     Q_UNUSED(pantilt);
     Q_UNUSED(x);
     Q_UNUSED(y);

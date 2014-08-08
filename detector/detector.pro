@@ -8,8 +8,6 @@ PKGCONFIG += opencv
 
 SOURCES += \
     main.cpp \
-    trackface/camshifting.cpp \
-    trackface/trackface.cpp \
     controller.cpp \
     hardware.cpp \
     detector/detector.cpp \
@@ -26,8 +24,6 @@ SOURCES += \
     detector/detectorparameter.cpp \
     ui/detectorparameterwidget.cpp
 HEADERS += \
-    trackface/camshifting.h \
-    trackface/trackface.h \
     controller.h \
     hardware.h \
     detector/detector.h \
