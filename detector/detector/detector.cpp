@@ -103,16 +103,16 @@ DetectorParameterList Detector::createParameters() const
     list << DetectorParameter("enabled", tr("Enabled"), DetectorParameter::Boolean, false)
 
          << DetectorParameter("limitWidth", tr("Limit width"), DetectorParameter::Boolean, true)
-         << DetectorParameter("minWidth", tr("Minimum width"), DetectorParameter::Integer, 100, 0, 1000)
+         << DetectorParameter("minWidth", tr("Minimum width"), DetectorParameter::Integer, 10, 0, 1000)
          << DetectorParameter("maxWidth", tr("Maximum width"), DetectorParameter::Integer, 500, 0, 1000)
 
          << DetectorParameter("limitHeight", tr("Limit height"), DetectorParameter::Boolean, true)
-         << DetectorParameter("minHeight", tr("Minimum height"), DetectorParameter::Integer, 100, 0, 1000)
+         << DetectorParameter("minHeight", tr("Minimum height"), DetectorParameter::Integer, 10, 0, 1000)
          << DetectorParameter("maxHeight", tr("Maximum height"), DetectorParameter::Integer, 500, 0, 1000)
 
          << DetectorParameter("limitArea", tr("Limit area"), DetectorParameter::Boolean, false)
-         << DetectorParameter("minArea", tr("Minimum height"), DetectorParameter::Integer, 10000, 0, 1000)
-         << DetectorParameter("maxArea", tr("Maximum height"), DetectorParameter::Integer, 250000, 0, 1000);
+         << DetectorParameter("minArea", tr("Minimum area"), DetectorParameter::Integer, 10000, 0, 1000)
+         << DetectorParameter("maxArea", tr("Maximum area"), DetectorParameter::Integer, 250000, 0, 1000);
     return list;
 }
 

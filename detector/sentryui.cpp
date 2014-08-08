@@ -7,6 +7,7 @@
 #include "sentryui.h"
 #include "ui_sentryui.h"
 #include "controller.h"
+#include "util.h"
 #include "audio.h"
 #include "detector/detector.h"
 #include "detector/detectorparameter.h"
@@ -100,7 +101,7 @@ void SentryUI::onCaptureDeviceChanged(int index)
 
 void SentryUI::updateDetectorParameters()
 {
-    clearLayout(ui->formLayout_detectorProperties);
+    Util::clearLayout(ui->formLayout_detectorProperties);
 
     if (ui->lstDetectors->currentRow() == -1)
         return;
@@ -116,17 +117,5 @@ void SentryUI::updateDetectorParameters()
 
         // TODO: Don't save every single value, only the one modified
         connect(w, SIGNAL(dataChanged()), detector, SLOT(saveParameterValues()));
-    }
-}
-
-void SentryUI::clearLayout(QLayout *layout, int start)
-{
-    int items = layout->count();
-    for (int i=start; i<items; ++i)
-    {
-        QLayoutItem *child = layout->takeAt(start);
-        child->widget()->close();
-        delete child->widget();
-        delete child;
     }
 }

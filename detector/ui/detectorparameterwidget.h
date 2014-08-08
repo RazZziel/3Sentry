@@ -22,7 +22,10 @@ private:
     DetectorParameter &m_detectorParameter;
 
 private slots:
+    void load();
     void save();
+
+    void on_btnReset_clicked();
 
 signals:
     void dataChanged();

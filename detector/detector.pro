@@ -22,7 +22,8 @@ SOURCES += \
     sentryweb.cpp \
     sentryinput.cpp \
     detector/detectorparameter.cpp \
-    ui/detectorparameterwidget.cpp
+    ui/detectorparameterwidget.cpp \
+    util.cpp
 HEADERS += \
     controller.h \
     hardware.h \
@@ -38,7 +39,8 @@ HEADERS += \
     sentryweb.h \
     sentryinput.h \
     detector/detectorparameter.h \
-    ui/detectorparameterwidget.h
+    ui/detectorparameterwidget.h \
+    util.h
 
 FORMS += \
     sentryui.ui \

@@ -9,6 +9,7 @@
 #include <QColorDialog>
 
 #include "detector/detectorparameter.h"
+#include "util.h"
 
 DetectorParameterWidget::DetectorParameterWidget(DetectorParameter &detectorParameter, QWidget *parent) :
     QWidget(parent),
@@ -16,6 +17,18 @@ DetectorParameterWidget::DetectorParameterWidget(DetectorParameter &detectorPara
     m_detectorParameter(detectorParameter)
 {
     ui->setupUi(this);
+
+    load();
+}
+
+DetectorParameterWidget::~DetectorParameterWidget()
+{
+    delete ui;
+}
+
+void DetectorParameterWidget::load()
+{
+    Util::clearLayout(ui->horizontalLayout, 1);
 
     QWidget *widget = NULL;
 
@@ -80,11 +93,6 @@ DetectorParameterWidget::DetectorParameterWidget(DetectorParameter &detectorPara
     }
 }
 
-DetectorParameterWidget::~DetectorParameterWidget()
-{
-    delete ui;
-}
-
 void DetectorParameterWidget::save()
 {
     QWidget *widget = dynamic_cast<QWidget*>(sender());
@@ -143,5 +151,12 @@ void DetectorParameterWidget::save()
         break;
     }
 
+    emit dataChanged();
+}
+
+void DetectorParameterWidget::on_btnReset_clicked()
+{
+    m_detectorParameter.m_value = m_detectorParameter.m_defaultValue;
+    load();
     emit dataChanged();
 }

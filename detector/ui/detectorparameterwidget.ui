@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>16</width>
-    <height>16</height>
+    <width>31</width>
+    <height>26</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,13 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
+   <item>
+    <widget class="QToolButton" name="btnReset">
+     <property name="text">
+      <string notr="true">↩</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

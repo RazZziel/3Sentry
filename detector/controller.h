@@ -38,6 +38,22 @@ public slots:
     bool stopFiring(Hardware::Gun gun);
 
 private:
+    struct TrackingObject {
+        qulonglong id;
+        cv::Rect rect;
+        cv::Point center;
+        bool isTarget;
+        Detector *detector;
+    };
+
+    QList<TrackingObject> findTrackingObjects(const QList<cv::Rect> &detectedObjects,
+                                              QList<TrackingObject> &lastFrameTrackingObjects,
+                                              Detector *detector);
+    TrackingObject *findCurrentTarget(QList<TrackingObject> &trackingObjects);
+
+    void drawTrackingObject(cv::Mat &image,
+                            const TrackingObject &target,
+                            bool isCurrentTarget);
     void drawCrosshair(cv::Mat &image,
                        const cv::Point &center,
                        int radius,
@@ -54,11 +70,15 @@ private:
     cv::Mat m_currentFrame;
 
     bool m_callibrating;
+    qulonglong m_lastTargetId;
+
     Hardware::Pantilt m_currentPantiltCallibrating;
     Hardware::CalibrationData m_callibrationData;
 
     QMap<Detector*, cv::Scalar> m_objectColors;
-    cv::Point m_currentTarget;
+    QList<TrackingObject> m_trackingObjects;
+    TrackingObject *m_currentTarget;
+
     cv::Point m_currentBodyPosition;
     cv::Point m_currentEyePosition;
 

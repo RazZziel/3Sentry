@@ -11,7 +11,9 @@ Controller::Controller(QObject *parent) :
     m_hardware(new Hardware()),
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
-    m_callibrating(false)
+    m_callibrating(false),
+    m_lastTargetId(0),
+    m_currentTarget(NULL)
 {
     m_detectors << new MovementDetector(this)
                 << new ColorDetector(this)
@@ -147,48 +149,56 @@ void Controller::process()
     }
     else
     {
-        int targetRadius = 30;
-        cv::Scalar potentialTargetColor = CV_RGB(255,255,255);
-        cv::Scalar currentTargetColor = CV_RGB(255,0,0);
+        QList<TrackingObject> trackingObjects;
 
         foreach (Detector *detector, m_detectors)
         {
             if (detector->isEnabled())
             {
+                // Image --> Detected objects
+
                 QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
 
-                foreach (const cv::Rect &object, detectedObjects)
+                foreach (const TrackingObject &object, m_trackingObjects)
                 {
-                    cv::Scalar color = m_objectColors.value(detector);
-
-                    cv::rectangle(m_currentFrame, object, color, 1, CV_AA, 0);
-
-                    if (true) // TODO: Filter potential targets
-                    {
-                        cv::Point center(object.tl().x+object.width/2,
-                                         object.tl().y+object.height/2);
-
-                        cv::circle(m_currentFrame,
-                                   center,
-                                   targetRadius,
-                                   potentialTargetColor,
-                                   3, CV_AA, 0);
-
-                        m_currentTarget = center; // TODO: Select current target
-                    }
+                    cv::rectangle(m_currentFrame,
+                                  object.rect,
+                                  m_objectColors.value(detector),
+                                  1, CV_AA, 0);
                 }
+
+                // Detected objects --> Tracking objects
+                // Tracking objects --> Potential targets
+
+                trackingObjects << findTrackingObjects(detectedObjects,
+                                                       m_trackingObjects,
+                                                       detector);
             }
         }
 
-        // Draw current target
-        if (m_currentTarget.x>0 && m_currentTarget.y>0)
+        m_trackingObjects = trackingObjects;
+
+
+        // Potential targets --> Current target
+
+        m_currentTarget = findCurrentTarget(m_trackingObjects);
+
+
+        // Draw all tracking objects
+
+        qulonglong currentTargetId = 0;
+        if (m_currentTarget)
+            currentTargetId = m_currentTarget->id;
+
+        foreach (const TrackingObject &object, m_trackingObjects)
         {
-            drawCrosshair(m_currentFrame,
-                          m_currentTarget,
-                          targetRadius,
-                          currentTargetColor,
-                          2);
+            drawTrackingObject(m_currentFrame,
+                               object,
+                               object.id == currentTargetId);
         }
+
+
+        // Draw hardware state
 
         drawCrosshair(m_currentFrame,
                       m_currentBodyPosition,
@@ -239,6 +249,114 @@ int Controller::numCaptureDevices()
         }
     }
     return maxTested;
+}
+
+QList<Controller::TrackingObject> Controller::findTrackingObjects(const QList<cv::Rect> &detectedObjects,
+                                                                  QList<TrackingObject> &lastFrameTrackingObjects,
+                                                                  Detector *detector)
+{
+    QList<Controller::TrackingObject> targets;
+
+    foreach (const cv::Rect &object, detectedObjects)
+    {
+        Controller::TrackingObject trackingObject;
+        trackingObject.detector = detector;
+        trackingObject.rect = object;
+        trackingObject.center = cv::Point(object.tl().x+object.width/2,
+                                          object.tl().y+object.height/2);
+
+
+        trackingObject.id = 0;
+        foreach (const TrackingObject &lastFrameTrackingObject, lastFrameTrackingObjects)
+        {
+            double distance = cv::norm(trackingObject.center - lastFrameTrackingObject.center);
+
+            if (distance < 20)
+            {
+                trackingObject.id = lastFrameTrackingObject.id;
+                //qDebug() << "Matched tracking object" << trackingObject.id;
+                break; // TODO: Get the minimum distance, not the first that fits
+            }
+        }
+
+        if (trackingObject.id == 0)
+        {
+            trackingObject.id = m_lastTargetId++;
+            //qDebug() << "Creating new tracking object" << trackingObject.id;
+        }
+
+
+        // TODO Filter potential targets
+        trackingObject.isTarget = true;
+
+
+        targets << trackingObject;
+    }
+
+    return targets;
+}
+
+Controller::TrackingObject *Controller::findCurrentTarget(QList<Controller::TrackingObject> &trackingObjects)
+{
+    for (int i=0; i<trackingObjects.count(); ++i)
+    {
+        // TODO: Select current target
+        return &trackingObjects[i];
+    }
+
+    return NULL;
+}
+
+void Controller::drawTrackingObject(cv::Mat &image,
+                                    const TrackingObject &target,
+                                    bool isCurrentTarget)
+{
+    cv::Scalar color;
+    int thickness;
+    int radius = 30;
+
+    if (isCurrentTarget) // Red crosshair
+    {
+        color = CV_RGB(255,0,0);
+        thickness = 2;
+
+        drawCrosshair(image,
+                      target.center,
+                      radius,
+                      color,
+                      thickness);
+    }
+    else if (target.isTarget) // White crosshair
+    {
+        color = CV_RGB(255,255,255);
+        thickness = 3;
+
+        drawCrosshair(image,
+                      target.center,
+                      radius,
+                      color,
+                      thickness);
+    }
+    else // Circle
+    {
+        color = m_objectColors.value(target.detector);
+        thickness = 1;
+
+        cv::circle(image,
+                   target.center,
+                   radius,
+                   color,
+                   thickness,
+                   CV_AA, 0);
+    }
+
+    cv::putText(m_currentFrame,
+                QString("%1").arg(target.id).toStdString(),
+                cv::Point(target.center.x-radius,
+                          target.center.y+radius+15),
+                cv::FONT_HERSHEY_PLAIN, 1,
+                color,
+                1, 8);
 }
 
 void Controller::drawCrosshair(cv::Mat &image,

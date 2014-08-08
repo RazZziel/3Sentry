@@ -22,8 +22,6 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
-    void clearLayout(QLayout *layout, int start=0);
-
     Ui::SentryUI *ui;
     Controller *m_controller;
 
