@@ -16,30 +16,48 @@ SentryWeb::SentryWeb(Controller *controller) :
 #include <QEventLoop>
 void SentryWeb::processHTTPRequest(HTTPRequest &request, HTTPReply &reply)
 {
-    QVariantMap headers;
-    headers.insert("Cache-Control", "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0");
-    headers.insert("Pragma", "no-cache");
-
-    reply.sendHeaders(200, "multipart/x-mixed-replace; boundary=" MJPEG_BOUNDARY, headers);
-
-    while (request.isActive())
+    if (request.m_path.first() == "/")
     {
-        QEventLoop loop;
-        QObject::connect(this, SIGNAL(newFrameReady()), &loop, SLOT(quit()));
-        QObject::connect(&request, SIGNAL(disconnected()), &loop, SLOT(quit()));
-        QTimer::singleShot(5000, &loop, SLOT(quit()));
-        loop.exec();
+        reply.sendHeaders(200, "text/html");
+        reply.stream() << "<head>"
+                       << "</head>"
+                       << "<body>"
+                       << "<h1>3Sentry</h1>"
+                       << "<img src='/stream'>"
+                       << "</body>";
+    }
+    else if (request.m_path.first() == "stream")
+    {
+        QVariantMap headers;
+        headers.insert("Cache-Control", "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0");
+        headers.insert("Pragma", "no-cache");
 
-        if (!request.isActive())
+        reply.sendHeaders(200, "multipart/x-mixed-replace; boundary=" MJPEG_BOUNDARY, headers);
+
+        while (request.isActive())
         {
-            return;
-        }
+            QEventLoop loop;
+            QObject::connect(this, SIGNAL(newFrameReady()), &loop, SLOT(quit()));
+            QObject::connect(&request, SIGNAL(disconnected()), &loop, SLOT(quit()));
+            QTimer::singleShot(5000, &loop, SLOT(quit()));
+            loop.exec();
 
-        reply.stream() << MJPEG_BOUNDARY << "\n";
-        reply.stream() << "Content-Type: image/jpeg" << "\n";
-        reply.stream() << "\n";
-        reply.stream().flush();
-        reply.binStream().writeRawData(m_imageData.constData(), m_imageData.length());
+            if (!request.isActive())
+            {
+                return;
+            }
+
+            reply.stream() << MJPEG_BOUNDARY << "\n";
+            reply.stream() << "Content-Type: image/jpeg" << "\n";
+            reply.stream() << "\n";
+            reply.stream().flush();
+            reply.binStream().writeRawData(m_imageData.constData(), m_imageData.length());
+        }
+    }
+    else
+    {
+        reply.sendHeaders(404, "text/plain");
+        reply.stream() << "There's nothing";
     }
 }
 

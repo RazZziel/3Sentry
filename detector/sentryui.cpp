@@ -54,8 +54,10 @@ void SentryUI::onNewOpenCVFrame(cv::Mat image)
 
 void SentryUI::closeEvent(QCloseEvent *event)
 {
-    event->accept();
+    hide();
     m_controller->stopProcessing();
+
+    event->accept();
 }
 
 void SentryUI::onCaptureDeviceChanged(int index)
