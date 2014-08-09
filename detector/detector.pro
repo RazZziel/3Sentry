@@ -10,6 +10,8 @@ SOURCES += \
     main.cpp \
     controller.cpp \
     hardware.cpp \
+    hardwareemulator.cpp \
+    hardwarearduino.cpp \
     detector/detector.cpp \
     detector/movementdetector.cpp \
     detector/colordetector.cpp \
@@ -27,6 +29,8 @@ SOURCES += \
 HEADERS += \
     controller.h \
     hardware.h \
+    hardwareemulator.h \
+    hardwarearduino.h \
     detector/detector.h \
     detector/movementdetector.h \
     detector/colordetector.h \

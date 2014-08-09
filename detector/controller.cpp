@@ -1,5 +1,7 @@
 #include "controller.h"
 #include "audio.h"
+#include "hardwareemulator.h"
+#include "hardwarearduino.h"
 
 #include "detector/movementdetector.h"
 #include "detector/colordetector.h"
@@ -8,7 +10,8 @@
 
 Controller::Controller(QObject *parent) :
     QObject(parent),
-    m_hardware(new Hardware()),
+    //m_hardware(new HardwareArduino()),
+    m_hardware(new HardwareEmulator()),
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
     m_videoWriter(new cv::VideoWriter()),
@@ -223,6 +226,15 @@ void Controller::process()
         // Potential targets --> Current target
 
         m_currentTarget = findCurrentTarget(m_trackingObjects);
+        if (m_currentTarget)
+        {
+            m_hardware->targetAbsolute(Hardware::Eye,
+                                       m_currentTarget->center.x,
+                                       m_currentTarget->center.y);
+            m_hardware->targetAbsolute(Hardware::Body,
+                                       m_currentTarget->center.x,
+                                       m_currentTarget->center.y);
+        }
 
 
         // Draw all tracking objects
@@ -249,7 +261,7 @@ void Controller::process()
 
         drawCrosshair(m_currentFrame,
                       m_currentEyePosition,
-                      10,
+                      5,
                       CV_RGB(240,10,10),
                       1);
     }

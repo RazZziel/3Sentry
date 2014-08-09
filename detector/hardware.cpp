@@ -1,6 +1,7 @@
 #include "hardware.h"
 
-Hardware::Hardware()
+Hardware::Hardware(QObject *parent) :
+    QObject(parent)
 {
 }
 
@@ -10,55 +11,12 @@ void Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationDa
     Q_UNUSED(calibrationData);
 }
 
-bool Hardware::getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY)
+QPoint Hardware::screen2hardware(QPoint xyOnScreen) const
 {
-    Q_UNUSED(pantilt);
-    Q_UNUSED(minX);
-    Q_UNUSED(maxX);
-    Q_UNUSED(minY);
-    Q_UNUSED(maxY);
-    return false;
+    return xyOnScreen;
 }
 
-bool Hardware::currentPosition(Pantilt pantilt, uint &x, uint &y)
+QPoint Hardware::hardware2screen(QPoint xyOnHardware) const
 {
-    Q_UNUSED(pantilt);
-    Q_UNUSED(x);
-    Q_UNUSED(y);
-    return false;
-}
-
-bool Hardware::targetAbsolute(Pantilt pantilt, uint x, uint y)
-{
-
-    Q_UNUSED(pantilt);
-    Q_UNUSED(x);
-    Q_UNUSED(y);
-    return false;
-}
-
-bool Hardware::targetRelative(Pantilt pantilt, uint dx, uint dy)
-{
-    Q_UNUSED(pantilt);
-    Q_UNUSED(dx);
-    Q_UNUSED(dy);
-    return false;
-}
-
-bool Hardware::enableFiring(Gun gun)
-{
-    Q_UNUSED(gun);
-    return false;
-}
-
-bool Hardware::stopFiring(Gun gun)
-{
-    Q_UNUSED(gun);
-    return false;
-}
-
-QPoint Hardware::calibratePoint(QPoint XYonCam)
-{
-    Q_UNUSED(XYonCam);
-    return QPoint();
+    return xyOnHardware;
 }

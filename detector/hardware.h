@@ -10,7 +10,7 @@ class Hardware : public QObject
 {
     Q_OBJECT
 public:
-    Hardware();
+    Hardware(QObject *parent=0);
 
     enum Pantilt {
         Body = 0,
@@ -29,15 +29,17 @@ public:
 
     void setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
 
-    bool currentPosition(Pantilt pantilt, uint &x, uint &y);
-    bool targetAbsolute(Pantilt pantilt, uint x, uint y);
-    bool targetRelative(Pantilt pantilt, uint dx, uint dy);
-    bool enableFiring(Gun gun);
-    bool stopFiring(Gun gun);
+    virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
+    virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y) =0;
+    virtual bool targetRelative(Pantilt pantilt, uint dx, uint dy) =0;
+    virtual bool enableFiring(Gun gun) =0;
+    virtual bool stopFiring(Gun gun) =0;
 
-private:
-    bool getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY);
-    QPoint calibratePoint(QPoint XYonCam);
+protected:
+    virtual bool getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY) =0;
+
+    QPoint screen2hardware(QPoint xyOnScreen) const;
+    QPoint hardware2screen(QPoint xyOnHardware) const;
 
     QMatrix2x3 m_calibrationMatrix;
 
