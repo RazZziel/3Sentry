@@ -1,0 +1,20 @@
+Tracking
+	Ahora mismo se hace comparando cada objeto detectado en un frame con los detectados en los frames anteriores
+	Problemas:
+		Es poco robusto
+		Si un objeto deja de ser detectado durante un frame, se pierde (implica que no soporta oclusiones)
+	Habría que implementar algún algoritmo clásico, como CAMshift
+		http://docs.opencv.org/trunk/doc/py_tutorials/py_video/py_meanshift/py_meanshift.html
+		http://docs.opencv.org/modules/video/doc/motion_analysis_and_object_tracking.html
+		https://www.youtube.com/watch?v=RG5uV_h50b0
+		https://www.youtube.com/watch?v=rDTun7A6HO8
+Filtering
+	Filtrar posibles objetivos de entre los objetos detectados
+	Filtrar objetivo actual de entre los posibles objetivos
+Detector de movimiento
+	https://www.youtube.com/watch?v=X6rPdRZzgjg
+Detector de colores
+Parámetros del controlador (tracking, fps, etc)
+Integración de hardware
+Calibración de hardware
+Joystick input (SDL2)
