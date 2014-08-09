@@ -1,14 +1,36 @@
+#include <opencv2/gpu/gpu.hpp>
+#include <opencv2/ocl/ocl.hpp>
 #include "cascadeclassifierdetector.h"
 
 CascadeClassifierDetector::CascadeClassifierDetector(const QString &filename, QObject *parent) :
     Detector(parent),
-    m_classifier(new cv::CascadeClassifier())
+    m_classifier(new cv::CascadeClassifier()),
+    m_classifier_CUDA(NULL),
+    m_classifier_OCL(NULL)
 {
-    m_classifier->load(filename.toStdString());
+    try
+    {
+        m_classifier_CUDA = new cv::gpu::CascadeClassifier_GPU();
+        m_classifier_CUDA->load(filename.toStdString());
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << name() << "Could not init CUDA classifier:" << QString::fromStdString(e.msg);
+        m_classifier_CUDA = NULL;
+    }
 
-#ifdef QT_DEBUG // TESTING
-    m_enabled = true;
-#endif
+    try
+    {
+        m_classifier_OCL = new cv::ocl::OclCascadeClassifier();
+        m_classifier_OCL->load(filename.toStdString());
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << name() << "Could not init OpenCL classifier:" << QString::fromStdString(e.msg);
+        m_classifier_OCL = NULL;
+    }
+
+    m_classifier->load(filename.toStdString());
 }
 
 QString CascadeClassifierDetector::name() const
@@ -18,17 +40,35 @@ QString CascadeClassifierDetector::name() const
 
 QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
 {
-    std::vector<cv::Rect> objects;
-    std::vector<int> rejectLevels;
-    std::vector<double> levelWeights;
-
     double scaleFactor = m_parameters.value("scaleFactor").m_value.toDouble();
     int minNeighbors = m_parameters.value("minNeighbors").m_value.toInt();
 
-    int minWidth = m_parameters.value("minWidth").m_value.toInt();
-    int minHeight = m_parameters.value("minHeight").m_value.toInt();
-    int maxWidth = m_parameters.value("maxWidth").m_value.toInt();
-    int maxHeight = m_parameters.value("maxHeight").m_value.toInt();
+    cv::Size minSize(m_parameters.value("minWidth").m_value.toInt(),
+                     m_parameters.value("minHeight").m_value.toInt());
+    cv::Size maxSize(m_parameters.value("maxWidth").m_value.toInt(),
+                     m_parameters.value("maxHeight").m_value.toInt());
+
+    if (m_classifier_CUDA)
+    {
+        return detectMultiScale_CUDA(image, minSize, maxSize, scaleFactor, minNeighbors);
+    }
+    else if (m_classifier_OCL)
+    {
+        return detectMultiScale_OCL(image, minSize, maxSize, scaleFactor, minNeighbors);
+    }
+    else
+    {
+        return detectMultiScale(image, minSize, maxSize, scaleFactor, minNeighbors);
+    }
+}
+
+QList<cv::Rect> CascadeClassifierDetector::detectMultiScale(const cv::Mat& image,
+                                                            cv::Size minSize, cv::Size maxSize,
+                                                            double scaleFactor, int minNeighbors) const
+{
+    std::vector<cv::Rect> objects;
+    std::vector<int> rejectLevels;
+    std::vector<double> levelWeights;
 
     try
     {
@@ -39,12 +79,83 @@ QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
                                        scaleFactor,
                                        minNeighbors,
                                        CV_HAAR_DO_CANNY_PRUNING,  // skip regions unlikely to contain an object
-                                       cv::Size(minWidth, minHeight),
-                                       cv::Size(maxWidth, maxHeight));
+                                       minSize,
+                                       maxSize);
     }
     catch (cv::Exception e)
     {
         qWarning() << name() << "failed:" << QString::fromStdString(e.msg);
+    }
+
+    QList<cv::Rect> objectList;
+    for (uint i=0; i<objects.size(); ++i)
+    {
+        objectList << objects.at(i);
+    }
+
+    return objectList;
+}
+
+QList<cv::Rect> CascadeClassifierDetector::detectMultiScale_CUDA(const cv::Mat& image,
+                                                                 cv::Size minSize, cv::Size maxSize,
+                                                                 double scaleFactor, int minNeighbors) const
+{
+    cv::Mat objects_mat;
+    int nObjects = 0;
+
+    try
+    {
+        cv::gpu::GpuMat image_gpu;
+        cv::gpu::GpuMat objects_gpu;
+
+        image_gpu.upload(image);
+
+        nObjects = m_classifier_CUDA->detectMultiScale(image_gpu, objects_gpu,
+                                                       minSize, maxSize,
+                                                       scaleFactor, minNeighbors);
+
+        objects_gpu.colRange(0, nObjects).download(objects_mat);
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << name() << "failed:" << QString::fromStdString(e.msg);
+        qWarning() << "Disabling CUDA...";
+        delete m_classifier_CUDA;
+        m_classifier_CUDA = NULL;
+    }
+
+    QList<cv::Rect> objectList;
+    cv::Rect* faces = objects_mat.ptr<cv::Rect>();
+    for (int i=0; i < nObjects; ++i)
+    {
+        objectList << faces[i];
+    }
+
+    return objectList;
+}
+
+QList<cv::Rect> CascadeClassifierDetector::detectMultiScale_OCL(const cv::Mat& image,
+                                                                cv::Size minSize, cv::Size maxSize,
+                                                                double scaleFactor, int minNeighbors) const
+{
+    std::vector<cv::Rect> objects;
+
+    try
+    {
+        cv::ocl::oclMat image_gpu;
+        image_gpu.upload(image);
+
+        m_classifier_OCL->detectMultiScale(image_gpu, objects,
+                                           scaleFactor, minNeighbors,
+                                           0,
+                                           minSize, maxSize);
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << name() << "failed:" << QString::fromStdString(e.msg);
+        qWarning() << "Disabling OpenCL...";
+        delete m_classifier_OCL;
+        m_classifier_OCL = NULL;
     }
 
     QList<cv::Rect> objectList;
