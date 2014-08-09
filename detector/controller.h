@@ -28,6 +28,9 @@ public slots:
     void startProcessing();
     void stopProcessing();
 
+    void startRecording();
+    void stopRecording();
+
     void startCallibration(Hardware::Pantilt pantilt);
     void nextCallibrationPoint();
     void abortCallibration();
@@ -67,6 +70,7 @@ private:
     Audio *m_audio;
 
     cv::VideoCapture* m_captureDevice;
+    cv::VideoWriter* m_videoWriter;
     cv::Mat m_currentFrame;
 
     bool m_callibrating;

@@ -11,6 +11,7 @@ Controller::Controller(QObject *parent) :
     m_hardware(new Hardware()),
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
+    m_videoWriter(new cv::VideoWriter()),
     m_callibrating(false),
     m_lastTargetId(0),
     m_currentTarget(NULL)
@@ -83,8 +84,48 @@ void Controller::stopProcessing()
 
     m_audio->play(Audio::Retire);
 
+    if (m_captureDevice->isOpened())
+    {
+        m_captureDevice->release();
+    }
+
+    stopRecording();
+
     while (m_audio->isPlaying())
         QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+}
+
+void Controller::startRecording()
+{
+    if (m_captureDevice->isOpened())
+    {
+        stopRecording();
+
+        QString filename = "/tmp/test.avi";
+        cv::Size inputSize = cv::Size((int) m_captureDevice->get(CV_CAP_PROP_FRAME_WIDTH),
+                                      (int) m_captureDevice->get(CV_CAP_PROP_FRAME_HEIGHT));
+        int fourcc = CV_FOURCC('M','P','E','G');
+        double fps = m_captureDevice->get(CV_CAP_PROP_FPS);
+
+        try
+        {
+            if (!m_videoWriter->open(filename.toStdString(), fourcc, fps, inputSize, true))
+            {
+                qWarning() << "Could not open video output" << filename;
+            }
+        }
+        catch (cv::Exception e)
+        {
+            qCritical() << "Exception opening video output" << QString::fromStdString(e.msg);
+        }
+    }
+}
+void Controller::stopRecording()
+{
+    if (m_videoWriter->isOpened())
+    {
+        m_videoWriter->release();
+    }
 }
 
 void Controller::startCallibration(Hardware::Pantilt pantilt)
@@ -214,6 +255,11 @@ void Controller::process()
     }
 
     emit newOpenCVFrame(m_currentFrame);
+
+    if (m_videoWriter->isOpened())
+    {
+        m_videoWriter->write(m_currentFrame);
+    }
 
     m_processTimer.start();
 }
