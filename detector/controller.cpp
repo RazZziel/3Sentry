@@ -1,3 +1,6 @@
+#include <opencv2/gpu/gpu.hpp>
+#include <opencv2/ocl/ocl.hpp>
+
 #include "controller.h"
 #include "audio.h"
 #include "hardwareemulator.h"
@@ -19,6 +22,17 @@ Controller::Controller(QObject *parent) :
     m_lastTargetId(0),
     m_currentTarget(NULL)
 {
+    qDebug() << "CUDA devices:" << cv::gpu::getCudaEnabledDeviceCount();
+    cv::ocl::DevicesInfo oclDevices;
+    qDebug() << "OpenCL devices:" << cv::ocl::getOpenCLDevices(oclDevices);
+    foreach (const cv::ocl::DeviceInfo *device, oclDevices)
+    {
+        qDebug() << "  "
+                 << device->deviceVendor.data()
+                 << device->deviceName.data();
+    }
+
+
     m_detectors << new MovementDetector(this)
                 << new ColorDetector(this)
                 << new BodyDetector(this)
