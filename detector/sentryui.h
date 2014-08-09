@@ -28,7 +28,10 @@ private:
 private slots:
     void onNewOpenCVFrame(cv::Mat image);
     void onCaptureDeviceChanged(int index);
+    void onOpenCvViewClicked(Qt::MouseButton button, QPoint pos);
     void updateDetectorParameters();
+    void on_btnStartCalibration_clicked();
+    void on_btnAbortCalibration_clicked();
 };
 
 #endif // SENTRYUI_H

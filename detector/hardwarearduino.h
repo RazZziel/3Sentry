@@ -9,14 +9,12 @@ class HardwareArduino : public Hardware
 public:
     HardwareArduino(QObject *parent=0);
 
+    bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
-    bool targetAbsolute(Pantilt pantilt, uint x, uint y);
+    bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, uint dx, uint dy);
     bool enableFiring(Gun gun);
     bool stopFiring(Gun gun);
-
-private:
-    bool getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY);
 };
 
 #endif // HARDWAREARDUINO_H

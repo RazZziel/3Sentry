@@ -25,19 +25,18 @@ public:
 
     // CalibrationData[XYonHardware] = XYonCam
     // CalibrationData[XY'] = XY
-    typedef QMap<QPoint,QPoint> CalibrationData;
+    typedef QList< QPair<QPoint,QPoint> > CalibrationData;
 
+    virtual bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY) =0;
     void setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
 
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
-    virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y) =0;
+    virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, uint dx, uint dy) =0;
     virtual bool enableFiring(Gun gun) =0;
     virtual bool stopFiring(Gun gun) =0;
 
 protected:
-    virtual bool getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY) =0;
-
     QPoint screen2hardware(QPoint xyOnScreen) const;
     QPoint hardware2screen(QPoint xyOnHardware) const;
 

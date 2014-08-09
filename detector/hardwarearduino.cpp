@@ -5,7 +5,7 @@ HardwareArduino::HardwareArduino(QObject *parent) :
 {
 }
 
-bool HardwareArduino::getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY)
+bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
     Q_UNUSED(pantilt);
     Q_UNUSED(minX);
@@ -23,11 +23,12 @@ bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     return false;
 }
 
-bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y)
+bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
     Q_UNUSED(pantilt);
     Q_UNUSED(x);
     Q_UNUSED(y);
+    Q_UNUSED(convertPos);
     return false;
 }
 

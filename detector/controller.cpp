@@ -18,8 +18,8 @@ Controller::Controller(QObject *parent) :
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
     m_videoWriter(new cv::VideoWriter()),
-    m_callibrating(false),
-    m_lastTargetId(0),
+    m_trackingObjectId(0),
+    m_calibrating(false),
     m_currentTarget(NULL)
 {
     qDebug() << "CUDA devices:" << cv::gpu::getCudaEnabledDeviceCount();
@@ -49,11 +49,16 @@ Controller::Controller(QObject *parent) :
 
 
     m_hardware->currentPosition(Hardware::Body,
-                                (uint&) m_currentBodyPosition.x,
-                                (uint&) m_currentBodyPosition.y);
+                                (uint&) m_currentPantiltPosition[Hardware::Body].x,
+                                (uint&) m_currentPantiltPosition[Hardware::Body].y);
     m_hardware->currentPosition(Hardware::Eye,
-                                (uint&) m_currentEyePosition.x,
-                                (uint&) m_currentEyePosition.y);
+                                (uint&) m_currentPantiltPosition[Hardware::Eye].x,
+                                (uint&) m_currentPantiltPosition[Hardware::Eye].y);
+    m_pantiltColor[Hardware::Body] = CV_RGB(200,200,200);
+    m_pantiltColor[Hardware::Eye] = CV_RGB(240,10,10);
+    m_pantiltRadius[Hardware::Body] = 10;
+    m_pantiltRadius[Hardware::Eye] = 5;
+
     connect(m_hardware, &Hardware::currentPositionChanged,
             this, &Controller::onCurrentPositionChanged);
 }
@@ -145,23 +150,90 @@ void Controller::stopRecording()
     }
 }
 
-void Controller::startCallibration(Hardware::Pantilt pantilt)
+bool Controller::isCalibrating()
 {
-    m_currentPantiltCallibrating = pantilt;
-    m_callibrating = true;
+    return m_calibrating;
 }
 
-void Controller::nextCallibrationPoint()
+bool Controller::startCallibration()
 {
-    if (m_callibrationData.count() >= 3)
+    if (m_calibrating)
     {
-        m_callibrating = false;
+        return false;
     }
+
+    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+
+        int minX, maxX, minY, maxY;
+        if (!m_hardware->getLimits(pantilt, minX, maxX, minY, maxY))
+        {
+            return false;
+        }
+
+        m_calibrationData[pantilt].clear();
+        m_calibrationHwPoints[pantilt] << QPoint(minX, minY)
+                                       << QPoint(minX, maxY)
+                                       << QPoint(maxX, maxY);
+
+        QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
+        qDebug() << pantilt << "First calibration point:" << newHardwarePoint;
+    }
+
+    m_calibrating = true;
+
+    return true;
 }
 
-void Controller::abortCallibration()
+bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos)
 {
-    m_callibrating = false;
+    if (!m_calibrating)
+    {
+        return false;
+    }
+
+    int nCalibrationPoints = m_calibrationHwPoints[pantilt].count();
+
+    if (m_calibrationData[pantilt].count() < nCalibrationPoints)
+    {
+        QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
+        qDebug() << pantilt << "Calibration pair added:" << currentHardwarePoint << screenPos;
+        m_calibrationData[pantilt] << QPair<QPoint,QPoint>(currentHardwarePoint, screenPos);
+
+        if (m_calibrationData[pantilt].count() < nCalibrationPoints)
+        {
+            QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
+            qDebug() << pantilt << "New calibration point:" << newHardwarePoint;
+        }
+        else
+        {
+            qDebug() << pantilt << "Calibration finished";
+        }
+    }
+    else if (m_calibrationData[pantilt].count() == nCalibrationPoints)
+    {
+        m_hardware->setCalibrationData(pantilt, m_calibrationData[pantilt]);
+    }
+
+    if (m_calibrationData[Hardware::Body].count() >= nCalibrationPoints &&
+        m_calibrationData[Hardware::Eye].count() >= nCalibrationPoints)
+    {
+        m_calibrating = false;
+    }
+
+    return m_calibrating;
+}
+
+bool Controller::abortCallibration()
+{
+    if (!m_calibrating)
+    {
+        return false;
+    }
+
+    m_calibrating = false;
+    return true;
 }
 
 
@@ -201,9 +273,39 @@ void Controller::process()
         return;
     }
 
-    if (m_callibrating)
+    if (m_calibrating)
     {
-        // TODO
+        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+        {
+            Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+
+            if (m_calibrationData[pantilt].count() < m_calibrationHwPoints[pantilt].count())
+            {
+                QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
+                m_hardware->targetAbsolute(pantilt,
+                                           currentHardwarePoint.x(),
+                                           currentHardwarePoint.y(),
+                                           false);
+
+
+                drawCrosshair(m_currentFrame,
+                              m_currentPantiltPosition[pantilt],
+                              m_pantiltRadius[pantilt],
+                              m_pantiltColor[pantilt],
+                              1);
+
+                cv::putText(m_currentFrame,
+                            QString("(%1,%2)")
+                            .arg(currentHardwarePoint.x())
+                            .arg(currentHardwarePoint.y())
+                            .toStdString(),
+                            cv::Point(m_currentPantiltPosition[pantilt].x,
+                                      m_currentPantiltPosition[pantilt].y + m_pantiltRadius[pantilt] + 10),
+                            cv::FONT_HERSHEY_PLAIN, 1,
+                            m_pantiltColor[pantilt],
+                            1, 8);
+            }
+        }
     }
     else
     {
@@ -242,12 +344,12 @@ void Controller::process()
         m_currentTarget = findCurrentTarget(m_trackingObjects);
         if (m_currentTarget)
         {
-            m_hardware->targetAbsolute(Hardware::Eye,
-                                       m_currentTarget->center.x,
-                                       m_currentTarget->center.y);
-            m_hardware->targetAbsolute(Hardware::Body,
-                                       m_currentTarget->center.x,
-                                       m_currentTarget->center.y);
+            targetAbsolute(Hardware::Eye,
+                           m_currentTarget->center.x,
+                           m_currentTarget->center.y);
+            targetAbsolute(Hardware::Body,
+                           m_currentTarget->center.x,
+                           m_currentTarget->center.y);
         }
 
 
@@ -264,23 +366,22 @@ void Controller::process()
                                object.id == currentTargetId);
         }
 
-
         // Draw hardware state
 
-        drawCrosshair(m_currentFrame,
-                      m_currentBodyPosition,
-                      10,
-                      CV_RGB(200,200,200),
-                      1);
-
-        drawCrosshair(m_currentFrame,
-                      m_currentEyePosition,
-                      5,
-                      CV_RGB(240,10,10),
-                      1);
+        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+        {
+            Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+            drawCrosshair(m_currentFrame,
+                          m_currentPantiltPosition[pantilt],
+                          m_pantiltRadius[pantilt],
+                          m_pantiltColor[pantilt],
+                          1);
+        }
     }
 
+
     emit newOpenCVFrame(m_currentFrame);
+
 
     if (m_videoWriter->isOpened())
     {
@@ -292,19 +393,8 @@ void Controller::process()
 
 void Controller::onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y)
 {
-    switch (pantilt)
-    {
-    case Hardware::Body:
-        m_currentBodyPosition.x = x;
-        m_currentBodyPosition.y = y;
-        break;
-    case Hardware::Eye:
-        m_currentEyePosition.x = x;
-        m_currentEyePosition.y = y;
-        break;
-    default:
-        break;
-    }
+    m_currentPantiltPosition[pantilt].x = x;
+    m_currentPantiltPosition[pantilt].y = y;
 }
 
 int Controller::numCaptureDevices()
@@ -353,7 +443,7 @@ QList<Controller::TrackingObject> Controller::findTrackingObjects(const QList<cv
 
         if (trackingObject.id == 0)
         {
-            trackingObject.id = m_lastTargetId++;
+            trackingObject.id = m_trackingObjectId++;
             //qDebug() << "Creating new tracking object" << trackingObject.id;
         }
 

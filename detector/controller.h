@@ -31,9 +31,10 @@ public slots:
     void startRecording();
     void stopRecording();
 
-    void startCallibration(Hardware::Pantilt pantilt);
-    void nextCallibrationPoint();
-    void abortCallibration();
+    bool isCalibrating();
+    bool startCallibration();
+    bool nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos);
+    bool abortCallibration();
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
     bool targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy);
@@ -73,18 +74,20 @@ private:
     cv::VideoWriter* m_videoWriter;
     cv::Mat m_currentFrame;
 
-    bool m_callibrating;
-    qulonglong m_lastTargetId;
+    qulonglong m_trackingObjectId;
 
-    Hardware::Pantilt m_currentPantiltCallibrating;
-    Hardware::CalibrationData m_callibrationData;
+    bool m_calibrating;
+    QHash<Hardware::Pantilt,QPoint> m_calibrationCurrentHwPos;
+    QHash<Hardware::Pantilt,QList<QPoint> > m_calibrationHwPoints;
+    QHash<Hardware::Pantilt,Hardware::CalibrationData> m_calibrationData;
 
     QMap<Detector*, cv::Scalar> m_objectColors;
     QList<TrackingObject> m_trackingObjects;
     TrackingObject *m_currentTarget;
 
-    cv::Point m_currentBodyPosition;
-    cv::Point m_currentEyePosition;
+    QHash<Hardware::Pantilt,int> m_pantiltRadius;
+    QHash<Hardware::Pantilt,cv::Scalar> m_pantiltColor;
+    QHash<Hardware::Pantilt,cv::Point> m_currentPantiltPosition;
 
 private slots:
     void process();

@@ -4,6 +4,8 @@
 #include <QGLWidget>
 #include <opencv2/core/core.hpp>
 
+class QGraphicsSceneMouseEvent;
+
 class CQtOpenCVViewerGl : public QGLWidget
 {
     Q_OBJECT
@@ -25,6 +27,8 @@ protected:
     void        renderImage();
 
 private:
+    void         mousePressEvent(QMouseEvent *event);
+
     bool        mSceneChanged;          /// Indicates when OpenGL view is to be redrawn
 
     QImage      mRenderQtImg;           /// Qt image to be rendered
@@ -39,6 +43,8 @@ private:
     int         mPosX;                  /// Top left X position to render image in the center of widget
     int         mPosY;                  /// Top left Y position to render image in the center of widget
 
+signals:
+    void        clicked(Qt::MouseButton,QPoint);
 };
 
 #endif // CQTOPENCVVIEWERGL_H

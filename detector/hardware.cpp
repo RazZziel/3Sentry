@@ -13,10 +13,20 @@ void Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationDa
 
 QPoint Hardware::screen2hardware(QPoint xyOnScreen) const
 {
-    return xyOnScreen;
+    QPoint xyOnHardware;
+
+    // TODO
+    xyOnHardware = QPoint(xyOnScreen.x()-100, xyOnScreen.y()-100);
+
+    return xyOnHardware;
 }
 
 QPoint Hardware::hardware2screen(QPoint xyOnHardware) const
 {
-    return xyOnHardware;
+    QPoint xyOnScreen;
+
+    // TODO
+    xyOnScreen = QPoint(xyOnHardware.x()+100, xyOnHardware.y()+100);
+
+    return xyOnScreen;
 }

@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include "cqtopencvviewergl.h"
 
 CQtOpenCVViewerGl::CQtOpenCVViewerGl(QWidget *parent) :
@@ -147,4 +148,9 @@ bool CQtOpenCVViewerGl::showImage( cv::Mat image )
     updateScene();
 
     return true;
+}
+
+void CQtOpenCVViewerGl::mousePressEvent(QMouseEvent *event)
+{
+    emit clicked(event->button(), event->pos());
 }

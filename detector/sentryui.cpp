@@ -41,6 +41,12 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     }
     connect(ui->lstDetectors, SIGNAL(activated(QModelIndex)), SLOT(updateDetectorParameters()));
     updateDetectorParameters();
+
+    connect(ui->wOpenCV, SIGNAL(clicked(Qt::MouseButton,QPoint)), SLOT(onOpenCvViewClicked(Qt::MouseButton,QPoint)));
+
+    ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
+                                        ? ui->page_abortCalibration
+                                        : ui->page_startCalibration);
 }
 
 SentryUI::~SentryUI()
@@ -99,6 +105,18 @@ void SentryUI::onCaptureDeviceChanged(int index)
     }
 }
 
+void SentryUI::onOpenCvViewClicked(Qt::MouseButton button, QPoint pos)
+{
+    m_controller->nextCallibrationPoint(button == Qt::LeftButton
+                                        ? Hardware::Body
+                                        : Hardware::Eye,
+                                        pos);
+
+    ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
+                                        ? ui->page_abortCalibration
+                                        : ui->page_startCalibration);
+}
+
 void SentryUI::updateDetectorParameters()
 {
     Util::clearLayout(ui->formLayout_detectorProperties);
@@ -118,4 +136,25 @@ void SentryUI::updateDetectorParameters()
         // TODO: Don't save every single value, only the one modified
         connect(w, SIGNAL(dataChanged()), detector, SLOT(saveParameterValues()));
     }
+}
+
+void SentryUI::on_btnStartCalibration_clicked()
+{
+    if (!m_controller->startCallibration())
+    {
+        QMessageBox::warning(this, tr("Error"), tr("Could not start calibration"));
+    }
+
+    ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
+                                        ? ui->page_abortCalibration
+                                        : ui->page_startCalibration);
+}
+
+void SentryUI::on_btnAbortCalibration_clicked()
+{
+    m_controller->abortCallibration();
+
+    ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
+                                        ? ui->page_abortCalibration
+                                        : ui->page_startCalibration);
 }

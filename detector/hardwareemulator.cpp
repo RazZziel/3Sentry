@@ -17,7 +17,7 @@ HardwareEmulator::HardwareEmulator(QObject *parent) :
     m_timer.start(50);
 }
 
-bool HardwareEmulator::getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &minY, uint &maxY)
+bool HardwareEmulator::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
     Q_UNUSED(pantilt);
     minX=-45;
@@ -29,15 +29,18 @@ bool HardwareEmulator::getLimits(Pantilt pantilt, uint &minX, uint &maxX, uint &
 
 bool HardwareEmulator::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
-    QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt]);
+    QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt].toPoint());
     x = screeenPoint.x();
     y = screeenPoint.y();
     return true;
 }
 
-bool HardwareEmulator::targetAbsolute(Pantilt pantilt, uint x, uint y)
+bool HardwareEmulator::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
-    m_currentHwTarget[pantilt] = screen2hardware(QPoint(x,y));
+    if (convertPos)
+        m_currentHwTarget[pantilt] = screen2hardware(QPoint(x,y));
+    else
+        m_currentHwTarget[pantilt] = QPoint(x,y);
 
     return true;
 }
@@ -68,14 +71,14 @@ void HardwareEmulator::tick()
     {
         Pantilt pantilt = (Pantilt) i;
 
-        m_currentHwPosition[pantilt].setX(qRound(m_currentHwPosition[pantilt].x() +
-                                                 (qreal)(m_currentHwTarget[pantilt].x() -
-                                                         m_currentHwPosition[pantilt].x()) * m_pantiltSpeed[pantilt]));
-        m_currentHwPosition[pantilt].setY(qRound(m_currentHwPosition[pantilt].y() +
-                                                 (qreal)(m_currentHwTarget[pantilt].y() -
-                                                         m_currentHwPosition[pantilt].y()) * m_pantiltSpeed[pantilt]));
+        m_currentHwPosition[pantilt].setX(m_currentHwPosition[pantilt].x() +
+                                          (qreal)(m_currentHwTarget[pantilt].x() -
+                                                  m_currentHwPosition[pantilt].x()) * m_pantiltSpeed[pantilt]);
+        m_currentHwPosition[pantilt].setY(m_currentHwPosition[pantilt].y() +
+                                          (qreal)(m_currentHwTarget[pantilt].y() -
+                                                  m_currentHwPosition[pantilt].y()) * m_pantiltSpeed[pantilt]);
 
-        QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt]);
+        QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt].toPoint());
         emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
     }
 }
