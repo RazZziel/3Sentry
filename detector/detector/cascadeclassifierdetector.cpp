@@ -8,26 +8,35 @@ CascadeClassifierDetector::CascadeClassifierDetector(const QString &filename, QO
     m_classifier_CUDA(NULL),
     m_classifier_OCL(NULL)
 {
-    try
+    if (cv::gpu::getCudaEnabledDeviceCount() > 0)
     {
-        m_classifier_CUDA = new cv::gpu::CascadeClassifier_GPU();
-        m_classifier_CUDA->load(filename.toStdString());
-    }
-    catch (cv::Exception e)
-    {
-        qWarning() << name() << "Could not init CUDA classifier:" << QString::fromStdString(e.msg);
-        m_classifier_CUDA = NULL;
+        try
+        {
+            m_classifier_CUDA = new cv::gpu::CascadeClassifier_GPU();
+            m_classifier_CUDA->load(filename.toStdString());
+            qDebug() << "Using CUDA classifier";
+        }
+        catch (cv::Exception e)
+        {
+            qWarning() << name() << "Could not init CUDA classifier:" << QString::fromStdString(e.msg);
+            m_classifier_CUDA = NULL;
+        }
     }
 
-    try
+    cv::ocl::DevicesInfo oclDevices;
+    if (cv::ocl::getOpenCLDevices(oclDevices) > 0)
     {
-        m_classifier_OCL = new cv::ocl::OclCascadeClassifier();
-        m_classifier_OCL->load(filename.toStdString());
-    }
-    catch (cv::Exception e)
-    {
-        qWarning() << name() << "Could not init OpenCL classifier:" << QString::fromStdString(e.msg);
-        m_classifier_OCL = NULL;
+        try
+        {
+            m_classifier_OCL = new cv::ocl::OclCascadeClassifier();
+            m_classifier_OCL->load(filename.toStdString());
+            qDebug() << "Using OpenCL classifier";
+        }
+        catch (cv::Exception e)
+        {
+            qWarning() << name() << "Could not init OpenCL classifier:" << QString::fromStdString(e.msg);
+            m_classifier_OCL = NULL;
+        }
     }
 
     m_classifier->load(filename.toStdString());
