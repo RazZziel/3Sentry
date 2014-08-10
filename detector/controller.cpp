@@ -22,14 +22,29 @@ Controller::Controller(QObject *parent) :
     m_calibrating(false),
     m_currentTarget(NULL)
 {
-    qDebug() << "CUDA devices:" << cv::gpu::getCudaEnabledDeviceCount();
-    cv::ocl::DevicesInfo oclDevices;
-    qDebug() << "OpenCL devices:" << cv::ocl::getOpenCLDevices(oclDevices);
-    foreach (const cv::ocl::DeviceInfo *device, oclDevices)
+    try
     {
-        qDebug() << "  "
-                 << device->deviceVendor.data()
-                 << device->deviceName.data();
+        qDebug() << "CUDA devices:" << cv::gpu::getCudaEnabledDeviceCount();
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << "Could not query CUDA devices:" << QString::fromStdString(e.msg);
+    }
+
+    try
+    {
+        cv::ocl::DevicesInfo oclDevices;
+        qDebug() << "OpenCL devices:" << cv::ocl::getOpenCLDevices(oclDevices);
+        foreach (const cv::ocl::DeviceInfo *device, oclDevices)
+        {
+            qDebug() << "  "
+                     << device->deviceVendor.data()
+                     << device->deviceName.data();
+        }
+    }
+    catch (cv::Exception e)
+    {
+        qWarning() << "Could not query OpenCL devices:" << QString::fromStdString(e.msg);
     }
 
 
