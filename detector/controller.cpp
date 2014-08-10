@@ -3,8 +3,8 @@
 
 #include "controller.h"
 #include "audio.h"
-#include "hardwareemulator.h"
-#include "hardwarearduino.h"
+#include "hardware/hardwareemulator.h"
+#include "hardware/hardwarearduino.h"
 
 #include "detector/movementdetector.h"
 #include "detector/colordetector.h"

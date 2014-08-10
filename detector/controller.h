@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <cv.h>
 #include <highgui.h>
-#include "hardware.h"
+#include "hardware/hardware.h"
 
 class Detector;
 class Hardware;

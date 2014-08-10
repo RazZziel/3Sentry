@@ -9,9 +9,9 @@ PKGCONFIG += opencv
 SOURCES += \
     main.cpp \
     controller.cpp \
-    hardware.cpp \
-    hardwareemulator.cpp \
-    hardwarearduino.cpp \
+    hardware/hardware.cpp \
+    hardware/hardwareemulator.cpp \
+    hardware/hardwarearduino.cpp \
     detector/detector.cpp \
     detector/movementdetector.cpp \
     detector/colordetector.cpp \
@@ -28,9 +28,9 @@ SOURCES += \
     util.cpp
 HEADERS += \
     controller.h \
-    hardware.h \
-    hardwareemulator.h \
-    hardwarearduino.h \
+    hardware/hardware.h \
+    hardware/hardwareemulator.h \
+    hardware/hardwarearduino.h \
     detector/detector.h \
     detector/movementdetector.h \
     detector/colordetector.h \
