@@ -199,7 +199,7 @@ bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenP
     {
         QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
         qDebug() << pantilt << "Calibration pair added:" << currentHardwarePoint << screenPos;
-        m_calibrationData[pantilt] << QPair<QPoint,QPoint>(currentHardwarePoint, screenPos);
+        m_calibrationData[pantilt] << Hardware::PointPair(currentHardwarePoint, screenPos);
 
         if (m_calibrationData[pantilt].count() < nCalibrationPoints)
         {

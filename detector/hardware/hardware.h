@@ -25,7 +25,8 @@ public:
 
     // CalibrationData[XYonHardware] = XYonCam
     // CalibrationData[XY'] = XY
-    typedef QList< QPair<QPoint,QPoint> > CalibrationData;
+    typedef QPair<QPoint,QPoint> PointPair;
+    typedef QList< PointPair > CalibrationData;
 
     virtual bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY) =0;
     void setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
