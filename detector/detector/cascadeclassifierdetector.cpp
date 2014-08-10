@@ -49,6 +49,9 @@ QString CascadeClassifierDetector::name() const
 
 QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
 {
+    bool useCudaIfAvailable = m_parameters.value("useCudaIfAvailable").m_value.toDouble();
+    bool useOclIfAvailable = m_parameters.value("useOclIfAvailable").m_value.toBool();
+
     double scaleFactor = m_parameters.value("scaleFactor").m_value.toDouble();
     int minNeighbors = m_parameters.value("minNeighbors").m_value.toInt();
 
@@ -57,11 +60,11 @@ QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
     cv::Size maxSize(m_parameters.value("maxWidth").m_value.toInt(),
                      m_parameters.value("maxHeight").m_value.toInt());
 
-    if (m_classifier_CUDA)
+    if (m_classifier_CUDA && useCudaIfAvailable)
     {
         return detectMultiScale_CUDA(image, minSize, maxSize, scaleFactor, minNeighbors);
     }
-    else if (m_classifier_OCL)
+    else if (m_classifier_OCL && useOclIfAvailable)
     {
         return detectMultiScale_OCL(image, minSize, maxSize, scaleFactor, minNeighbors);
     }
@@ -180,7 +183,9 @@ DetectorParameterList CascadeClassifierDetector::createParameters() const
 {
     DetectorParameterList list = Detector::createParameters();
     list << DetectorParameter("scaleFactor", tr("Scale factor"), DetectorParameter::Real, 1.1, 0, 1000)
-         << DetectorParameter("minNeighbors", tr("Maximum neighboors"), DetectorParameter::Integer, 6, 0, 10);
+         << DetectorParameter("minNeighbors", tr("Maximum neighboors"), DetectorParameter::Integer, 6, 0, 10)
+         << DetectorParameter("useCudaIfAvailable", tr("Use CUDA if available"), DetectorParameter::Boolean, true)
+         << DetectorParameter("useOclIfAvailable", tr("Use OpenCL if available"), DetectorParameter::Boolean, true);
     return list;
 }
 

@@ -193,7 +193,7 @@ bool Controller::startCallibration()
                                        << QPoint(maxX, maxY);
 
         QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
-        qDebug() << pantilt << "First calibration point:" << newHardwarePoint;
+        qDebug() << "Pantilt" << pantilt << "First calibration point:" << newHardwarePoint;
     }
 
     m_calibrating = true;
@@ -213,17 +213,17 @@ bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenP
     if (m_calibrationData[pantilt].count() < nCalibrationPoints)
     {
         QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
-        qDebug() << pantilt << "Calibration pair added:" << currentHardwarePoint << screenPos;
+        qDebug() << "Pantilt" << pantilt << "Calibration pair added:" << currentHardwarePoint << screenPos;
         m_calibrationData[pantilt] << Hardware::PointPair(currentHardwarePoint, screenPos);
 
         if (m_calibrationData[pantilt].count() < nCalibrationPoints)
         {
             QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
-            qDebug() << pantilt << "New calibration point:" << newHardwarePoint;
+            qDebug() << "Pantilt" << pantilt << "New calibration point:" << newHardwarePoint;
         }
         else
         {
-            qDebug() << pantilt << "Calibration finished";
+            qDebug() << "Pantilt" << pantilt << "Calibration finished";
         }
     }
     else if (m_calibrationData[pantilt].count() == nCalibrationPoints)
