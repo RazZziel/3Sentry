@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QPoint>
-#include <QMatrix2x3>
+#include <QTransform>
 
 class Hardware : public QObject
 {
@@ -23,13 +23,14 @@ public:
         LeftGun = 2
     };
 
-    // CalibrationData[XYonHardware] = XYonCam
-    // CalibrationData[XY'] = XY
+    // CalibrationData <xyOnHardware, xyOnCam>
+    // CalibrationData <XY,XY'>
     typedef QPair<QPoint,QPoint> PointPair;
     typedef QList< PointPair > CalibrationData;
 
     virtual bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY) =0;
-    void setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
+    bool setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
+    QTransform calibrationMatrix(Pantilt pantilt);
 
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
@@ -38,10 +39,11 @@ public:
     virtual bool stopFiring(Gun gun) =0;
 
 protected:
-    QPoint screen2hardware(QPoint xyOnScreen) const;
-    QPoint hardware2screen(QPoint xyOnHardware) const;
+    QPoint screen2hardware(Pantilt pantilt, QPoint xyOnScreen) const;
+    QPoint hardware2screen(Pantilt pantilt, QPoint xyOnHardware) const;
 
-    QMatrix2x3 m_calibrationMatrix;
+    QMap<Pantilt,QTransform> m_calibrationMatrix;
+    QMap<Pantilt,QTransform> m_calibrationMatrixInverted;
 
 signals:
     void currentPositionChanged(Pantilt pantilt, int x, int y);

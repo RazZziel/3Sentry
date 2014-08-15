@@ -107,10 +107,10 @@ void SentryUI::onCaptureDeviceChanged(int index)
 
 void SentryUI::onOpenCvViewClicked(Qt::MouseButton button, QPoint pos)
 {
-    m_controller->nextCallibrationPoint(button == Qt::LeftButton
-                                        ? Hardware::Body
-                                        : Hardware::Eye,
-                                        pos);
+    m_controller->nextCalibrationPoint(button == Qt::LeftButton
+                                       ? Hardware::Body
+                                       : Hardware::Eye,
+                                       pos);
 
     ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
                                         ? ui->page_abortCalibration
@@ -140,7 +140,7 @@ void SentryUI::updateDetectorParameters()
 
 void SentryUI::on_btnStartCalibration_clicked()
 {
-    if (!m_controller->startCallibration())
+    if (!m_controller->startCalibration())
     {
         QMessageBox::warning(this, tr("Error"), tr("Could not start calibration"));
     }
@@ -152,7 +152,7 @@ void SentryUI::on_btnStartCalibration_clicked()
 
 void SentryUI::on_btnAbortCalibration_clicked()
 {
-    m_controller->abortCallibration();
+    m_controller->abortCallbration();
 
     ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
                                         ? ui->page_abortCalibration

@@ -12,11 +12,13 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+CONFIG += link_pkgconfig
+PKGCONFIG += opencv
 
-SOURCES += tst_hardwareemulator.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 INCLUDEPATH += $$PWD/../detector/hardware/
 
+SOURCES += tst_hardwareemulator.cpp
 
 SOURCES += \
     ../detector/hardware/hardware.cpp \

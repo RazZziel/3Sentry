@@ -1,32 +1,102 @@
 #include "hardware.h"
+#include <QMatrix3x3>
+#include <QMatrix>
+#include <cv.h>
 
 Hardware::Hardware(QObject *parent) :
     QObject(parent)
 {
 }
 
-void Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)
+bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)
 {
-    Q_UNUSED(pantilt);
-    Q_UNUSED(calibrationData);
+    // XY = xyOnHardware
+    // XY' = xyOnScreen
+
+#if 1 // OpenCV, N points
+    int nPoints = calibrationData.length();
+    float cvAdata[nPoints*3];
+    float cvACdata[nPoints*2];
+    int row=0;
+    foreach (const PointPair &pair, calibrationData)
+    {
+        // A = (X'1 Y'1 1,
+        //      X'2 Y'2 1,
+        //      X'3 Y'3 1)
+        cvAdata[row*3+0] = pair.first.x();
+        cvAdata[row*3+1] = pair.first.y();
+        cvAdata[row*3+2] = 1;
+
+        // (ax bx cx)t = 1/A * (X1 X2 X3)t
+        cvACdata[row*2+0] = pair.second.x();
+
+        // (ay by cy)t = 1/A * (Y1 Y2 Y3)t
+        cvACdata[row*2+1] = pair.second.y();
+
+        ++row;
+    }
+    cv::Mat A(nPoints,3,CV_32F,cvAdata);
+    cv::Mat C(nPoints,2,CV_32F,cvACdata);
+    std::cout << "A " << A << std::endl;
+    std::cout << "C " << C << std::endl;
+    std::cout << std::endl;
+    //std::cout << "A^(-1) " << A.inv() << std::endl;
+    //std::cout << "A^(-1) * C " << A.inv() * C << std::endl;
+    //std::cout << std::endl;
+    cv::Mat At = A.t();
+    std::cout << "(A^t * A)^(-1) * A^t * C " << (At * A).inv() * At * C << std::endl;
+    std::cout << std::endl;
+
+    //cv::Mat coef = A.inv() * C; // Specific form for 3 calibration points
+    cv::Mat coef = (At * A).inv() * At * C; // Generic form for N calibration points
+    float *coefData = (float*) coef.data;
+    m_calibrationMatrix[pantilt] = QTransform(coefData[0], coefData[1],
+            coefData[2], coefData[3],
+            coefData[4], coefData[5]);
+#else // Qt, shortcut, 3 or 4 points
+    QPolygonF one;
+    QPolygonF two;
+
+    for (int i=0; i<4; ++i)
+    {
+        if (i < calibrationData.length())
+        {
+            one << calibrationData.at(i).first;
+            two << calibrationData.at(i).second;
+        }
+        else
+        {
+            one << QPoint(0,0);
+            two << QPoint(0,0);
+        }
+    }
+
+    if (!QTransform::quadToQuad(one, two, m_calibrationMatrix[pantilt]))
+    {
+        qWarning() << "Could not calculate calibration matrix";
+        return false;
+    }
+#endif
+
+    m_calibrationMatrixInverted[pantilt] = m_calibrationMatrix[pantilt].inverted();
+
+    qDebug() << "Calibration matrix:" << m_calibrationMatrix[pantilt];
+    qDebug() << "Inverted calibration matrix:" << m_calibrationMatrixInverted[pantilt];
+
+    return true;
 }
 
-QPoint Hardware::screen2hardware(QPoint xyOnScreen) const
+QTransform Hardware::calibrationMatrix(Pantilt pantilt)
 {
-    QPoint xyOnHardware;
-
-    // TODO
-    xyOnHardware = QPoint(xyOnScreen.x()-100, xyOnScreen.y()-100);
-
-    return xyOnHardware;
+    return m_calibrationMatrix[pantilt];
 }
 
-QPoint Hardware::hardware2screen(QPoint xyOnHardware) const
+QPoint Hardware::screen2hardware(Pantilt pantilt, QPoint xyOnScreen) const
 {
-    QPoint xyOnScreen;
+    return m_calibrationMatrixInverted[pantilt].map(xyOnScreen);
+}
 
-    // TODO
-    xyOnScreen = QPoint(xyOnHardware.x()+100, xyOnHardware.y()+100);
-
-    return xyOnScreen;
+QPoint Hardware::hardware2screen(Pantilt pantilt, QPoint xyOnHardware) const
+{
+    return m_calibrationMatrix[pantilt].map(xyOnHardware);
 }

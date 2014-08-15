@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QHash>
 #include <cv.h>
 #include <highgui.h>
 #include "hardware/hardware.h"
@@ -32,9 +33,9 @@ public slots:
     void stopRecording();
 
     bool isCalibrating();
-    bool startCallibration();
-    bool nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos);
-    bool abortCallibration();
+    bool startCalibration();
+    bool nextCalibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos);
+    bool abortCallbration();
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
     bool targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy);

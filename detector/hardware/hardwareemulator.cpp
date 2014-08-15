@@ -29,7 +29,7 @@ bool HardwareEmulator::getLimits(Pantilt pantilt, int &minX, int &maxX, int &min
 
 bool HardwareEmulator::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
-    QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt].toPoint());
+    QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt].toPoint());
     x = screeenPoint.x();
     y = screeenPoint.y();
     return true;
@@ -38,7 +38,7 @@ bool HardwareEmulator::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 bool HardwareEmulator::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
     if (convertPos)
-        m_currentHwTarget[pantilt] = screen2hardware(QPoint(x,y));
+        m_currentHwTarget[pantilt] = screen2hardware(pantilt, QPoint(x,y));
     else
         m_currentHwTarget[pantilt] = QPoint(x,y);
 
@@ -78,7 +78,7 @@ void HardwareEmulator::tick()
                                           (qreal)(m_currentHwTarget[pantilt].y() -
                                                   m_currentHwPosition[pantilt].y()) * m_pantiltSpeed[pantilt]);
 
-        QPoint screeenPoint = hardware2screen(m_currentHwPosition[pantilt].toPoint());
+        QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt].toPoint());
         emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
     }
 }

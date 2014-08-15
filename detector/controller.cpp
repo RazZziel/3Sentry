@@ -65,10 +65,10 @@ Controller::Controller(QObject *parent) :
 
     m_hardware->currentPosition(Hardware::Body,
                                 (uint&) m_currentPantiltPosition[Hardware::Body].x,
-                                (uint&) m_currentPantiltPosition[Hardware::Body].y);
+            (uint&) m_currentPantiltPosition[Hardware::Body].y);
     m_hardware->currentPosition(Hardware::Eye,
                                 (uint&) m_currentPantiltPosition[Hardware::Eye].x,
-                                (uint&) m_currentPantiltPosition[Hardware::Eye].y);
+            (uint&) m_currentPantiltPosition[Hardware::Eye].y);
     m_pantiltColor[Hardware::Body] = CV_RGB(200,200,200);
     m_pantiltColor[Hardware::Eye] = CV_RGB(240,10,10);
     m_pantiltRadius[Hardware::Body] = 10;
@@ -170,7 +170,7 @@ bool Controller::isCalibrating()
     return m_calibrating;
 }
 
-bool Controller::startCallibration()
+bool Controller::startCalibration()
 {
     if (m_calibrating)
     {
@@ -201,7 +201,7 @@ bool Controller::startCallibration()
     return true;
 }
 
-bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos)
+bool Controller::nextCalibrationPoint(Hardware::Pantilt pantilt, QPoint screenPos)
 {
     if (!m_calibrating)
     {
@@ -228,11 +228,14 @@ bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenP
     }
     else if (m_calibrationData[pantilt].count() == nCalibrationPoints)
     {
-        m_hardware->setCalibrationData(pantilt, m_calibrationData[pantilt]);
+        if (!m_hardware->setCalibrationData(pantilt, m_calibrationData[pantilt]))
+        {
+            qWarning() << "Could not set calibration data";
+        }
     }
 
     if (m_calibrationData[Hardware::Body].count() >= nCalibrationPoints &&
-        m_calibrationData[Hardware::Eye].count() >= nCalibrationPoints)
+            m_calibrationData[Hardware::Eye].count() >= nCalibrationPoints)
     {
         m_calibrating = false;
     }
@@ -240,7 +243,7 @@ bool Controller::nextCallibrationPoint(Hardware::Pantilt pantilt, QPoint screenP
     return m_calibrating;
 }
 
-bool Controller::abortCallibration()
+bool Controller::abortCallbration()
 {
     if (!m_calibrating)
     {
