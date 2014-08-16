@@ -23,8 +23,6 @@ int main(int argc, char** argv)
     SentryInput input(&controller);
     Q_UNUSED(input);
 
-    controller.startProcessing();
-
 #if 1
     SentryUI ui(&controller);
     ui.show();

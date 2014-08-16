@@ -90,22 +90,40 @@ Audio *Controller::audio()
 
 bool Controller::setCaptureDevice(int device)
 {
+    stopProcessing();
+
     if (m_captureDevice->isOpened())
     {
         m_captureDevice->release();
     }
 
-    return m_captureDevice->open(device);
+    bool ok = m_captureDevice->open(device);
+
+    if (ok)
+    {
+        startProcessing();
+    }
+
+    return ok;
 }
 
 bool Controller::setCaptureDevice(const QString &filename)
 {
+    stopProcessing();
+
     if (m_captureDevice->isOpened())
     {
         m_captureDevice->release();
     }
 
-    return m_captureDevice->open(filename.toStdString());
+    bool ok = m_captureDevice->open(filename.toStdString());
+
+    if (ok)
+    {
+        startProcessing();
+    }
+
+    return ok;
 }
 
 void Controller::startProcessing()
@@ -117,9 +135,12 @@ void Controller::startProcessing()
 
 void Controller::stopProcessing()
 {
-    m_processTimer.stop();
+    if (m_processTimer.isActive())
+    {
+        m_audio->play(Audio::Retire);
+    }
 
-    m_audio->play(Audio::Retire);
+    m_processTimer.stop();
 
     if (m_captureDevice->isOpened())
     {
