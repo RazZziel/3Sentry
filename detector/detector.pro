@@ -1,7 +1,7 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle
-QT += core gui opengl multimedia
+QT += core gui opengl multimedia serialport
 
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv

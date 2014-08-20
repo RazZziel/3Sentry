@@ -3,11 +3,14 @@
 
 #include "hardware.h"
 
+class QSerialPort;
+
 class HardwareArduino : public Hardware
 {
     Q_OBJECT
 public:
     HardwareArduino(QObject *parent=0);
+    ~HardwareArduino();
 
     bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
@@ -15,6 +18,10 @@ public:
     bool targetRelative(Pantilt pantilt, int dx, int dy);
     bool enableFiring(Gun gun);
     bool stopFiring(Gun gun);
+
+private:
+    bool sendCommand(const QByteArray &ba);
+    QSerialPort *m_serialPort;
 };
 
 #endif // HARDWAREARDUINO_H
