@@ -12,6 +12,8 @@ public:
     HardwareArduino(QObject *parent=0);
     ~HardwareArduino();
 
+    ParameterList createParameters() const;
+
     bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);

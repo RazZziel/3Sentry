@@ -5,6 +5,7 @@
 #include "audio.h"
 #include "hardware/hardwareemulator.h"
 #include "hardware/hardwarearduino.h"
+#include "hardware/hardwarethunder.h"
 
 #include "detector/movementdetector.h"
 #include "detector/colordetector.h"
@@ -13,8 +14,9 @@
 
 Controller::Controller(QObject *parent) :
     QObject(parent),
-    //m_hardware(new HardwareArduino()),
-    m_hardware(new HardwareEmulator()),
+    m_parameterManager(new ParameterManager(this, this)),
+    m_processTimer(this),
+    m_hardware(NULL),
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
     m_videoWriter(new cv::VideoWriter()),
@@ -47,6 +49,12 @@ Controller::Controller(QObject *parent) :
         qWarning() << "Could not query OpenCL devices:" << QString::fromStdString(e.msg);
     }
 
+    m_parameterManager->init();
+
+    //m_hardware = new HardwareArduino();
+    m_hardware = new HardwareEmulator();
+    //m_hardware = new HardwareThunder();
+    m_hardware->init();
 
     m_detectors << new MovementDetector(this)
                 << new ColorDetector(this)
@@ -78,9 +86,31 @@ Controller::Controller(QObject *parent) :
             this, &Controller::onCurrentPositionChanged);
 }
 
+QString Controller::settingsGroup()
+{
+    return QString("Controller/");
+}
+
+ParameterList Controller::createParameters() const
+{
+    ParameterList list;
+    list << Parameter("foo", tr("Le foo"), Parameter::String, "bar");
+    return list;
+}
+
+ParameterManager *Controller::parameterManager()
+{
+    return m_parameterManager;
+}
+
 QList<Detector*> Controller::detectors()
 {
     return m_detectors;
+}
+
+Hardware *Controller::hardware()
+{
+    return m_hardware;
 }
 
 Audio *Controller::audio()

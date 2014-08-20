@@ -4,8 +4,29 @@
 #include <cv.h>
 
 Hardware::Hardware(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_parameterManager(new ParameterManager(this, this))
 {
+}
+
+void Hardware::init()
+{
+    m_parameterManager->init();
+}
+
+QString Hardware::settingsGroup()
+{
+    return QString("Hardware/%1/").arg(metaObject()->className());
+}
+
+ParameterList Hardware::createParameters() const
+{
+    return ParameterList();
+}
+
+ParameterManager *Hardware::parameterManager()
+{
+    return m_parameterManager;
 }
 
 bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)

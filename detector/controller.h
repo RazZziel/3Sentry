@@ -7,23 +7,29 @@
 #include <cv.h>
 #include <highgui.h>
 #include "hardware/hardware.h"
+#include "parametermanager.h"
 
 class Detector;
 class Hardware;
 class Audio;
 
-class Controller : public QObject
+class Controller : public QObject, public ParameterOwner
 {
     Q_OBJECT
 public:
     Controller(QObject *parent=0);
 
     QList<Detector*> detectors();
+    Hardware *hardware();
     Audio *audio();
 
     int numCaptureDevices();
     bool setCaptureDevice(int device);
     bool setCaptureDevice(const QString &filename);
+
+    QString settingsGroup();
+    ParameterList createParameters() const;
+    ParameterManager *parameterManager();
 
 public slots:
     void startProcessing();
@@ -65,6 +71,8 @@ private:
                        cv::Scalar color,
                        int thickness);
 
+
+    ParameterManager *m_parameterManager;
     QTimer m_processTimer;
 
     QList<Detector*> m_detectors;

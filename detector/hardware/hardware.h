@@ -5,8 +5,9 @@
 #include <QMap>
 #include <QPoint>
 #include <QTransform>
+#include "parametermanager.h"
 
-class Hardware : public QObject
+class Hardware : public QObject, public ParameterOwner
 {
     Q_OBJECT
 public:
@@ -28,6 +29,11 @@ public:
     typedef QPair<QPoint,QPoint> PointPair;
     typedef QList< PointPair > CalibrationData;
 
+    void init();
+    QString settingsGroup();
+    virtual ParameterList createParameters() const;
+    ParameterManager *parameterManager();
+
     virtual bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY) =0;
     bool setCalibrationData(Pantilt pantilt, CalibrationData calibrationData);
     QTransform calibrationMatrix(Pantilt pantilt);
@@ -44,6 +50,8 @@ protected:
 
     QMap<Pantilt,QTransform> m_calibrationMatrix;
     QMap<Pantilt,QTransform> m_calibrationMatrixInverted;
+
+    ParameterManager *m_parameterManager;
 
 signals:
     void currentPositionChanged(Pantilt pantilt, int x, int y);

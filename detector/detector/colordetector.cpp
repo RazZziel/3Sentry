@@ -16,8 +16,8 @@ QList<cv::Rect> ColorDetector::detect(const cv::Mat& image) const
     return QList<cv::Rect>();
 }
 
-DetectorParameterList ColorDetector::createParameters() const
+ParameterList ColorDetector::createParameters() const
 {
-    DetectorParameterList list = Detector::createParameters();
+    ParameterList list = Detector::createParameters();
     return list;
 }

@@ -4,14 +4,17 @@
 #include <QObject>
 #include <QtCore>
 #include <cv.h>
-#include "detectorparameter.h"
+#include "parametermanager.h"
 
-class Detector : public QObject
+class Detector : public QObject, public ParameterOwner
 {
     Q_OBJECT
 public:
     Detector(QObject *parent=0);
+
     void init();
+    ParameterManager *parameterManager();
+    QString settingsGroup();
 
     virtual QString name() const =0;
     virtual QList<cv::Rect> detect(const cv::Mat& image) const =0;
@@ -19,23 +22,12 @@ public:
     void setEnabled(bool enabled);
     bool isEnabled();
 
-    DetectorParameterMap &getParameters();
-    void setParameter(const QString &name, const QVariant &value);
-
-public slots:
-    void loadParameterValues();
-    void saveParameterValues();
-
 protected:
-    virtual DetectorParameterList createParameters() const;
+    virtual ParameterList createParameters() const;
     virtual QList<cv::Rect> filterResults(const QList<cv::Rect> &objects) const;
 
+    ParameterManager *m_parameterManager;
     bool m_enabled;
-    DetectorParameterMap m_parameters;
-
-private:
-    QString settingsGroup();
-    void saveParameter(const QString &name, const QVariant &value);
 };
 
 #endif // DETECTOR_H

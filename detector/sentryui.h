@@ -3,9 +3,12 @@
 
 #include <QMainWindow>
 #include <cv.h>
+#include "parameter.h"
 
 class QCloseEvent;
+class QFormLayout;
 class Controller;
+class ParameterManager;
 
 namespace Ui {
 class SentryUI;
@@ -22,6 +25,8 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
+    void fillParameterForm(ParameterManager *parameterManager, QFormLayout *layout);
+
     Ui::SentryUI *ui;
     Controller *m_controller;
 
@@ -30,6 +35,8 @@ private slots:
     void onCaptureDeviceChanged(int index);
     void onOpenCvViewClicked(Qt::MouseButton button, QPoint pos);
     void updateDetectorParameters();
+    void updateHardwareParameters();
+    void updateControllerParameters();
     void on_btnStartCalibration_clicked();
     void on_btnAbortCalibration_clicked();
 };

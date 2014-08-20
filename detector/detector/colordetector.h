@@ -13,7 +13,7 @@ public:
     QList<cv::Rect> detect(const cv::Mat& image) const;
 
 private:
-    DetectorParameterList createParameters() const;
+    ParameterList createParameters() const;
 };
 
 #endif // COLORDETECTOR_H

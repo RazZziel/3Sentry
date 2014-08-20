@@ -1,4 +1,4 @@
-#include "detectorparameterwidget.h"
+#include "parameterwidget.h"
 #include "ui_detectorparameterwidget.h"
 
 #include <QCheckBox>
@@ -8,12 +8,12 @@
 #include <QPushButton>
 #include <QColorDialog>
 
-#include "detector/detectorparameter.h"
+#include "parameter.h"
 #include "util.h"
 
-DetectorParameterWidget::DetectorParameterWidget(DetectorParameter &detectorParameter, QWidget *parent) :
+ParameterWidget::ParameterWidget(Parameter &detectorParameter, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::DetectorParameterWidget),
+    ui(new Ui::ParameterWidget),
     m_detectorParameter(detectorParameter)
 {
     ui->setupUi(this);
@@ -21,12 +21,12 @@ DetectorParameterWidget::DetectorParameterWidget(DetectorParameter &detectorPara
     load();
 }
 
-DetectorParameterWidget::~DetectorParameterWidget()
+ParameterWidget::~ParameterWidget()
 {
     delete ui;
 }
 
-void DetectorParameterWidget::load()
+void ParameterWidget::load()
 {
     Util::clearLayout(ui->horizontalLayout, 1);
 
@@ -34,10 +34,10 @@ void DetectorParameterWidget::load()
 
     switch (m_detectorParameter.m_type)
     {
-    case DetectorParameter::Unknown:
+    case Parameter::Unknown:
         break;
 
-    case DetectorParameter::Boolean:
+    case Parameter::Boolean:
     {
         QCheckBox *checkBox = new QCheckBox(this);
         checkBox->setChecked(m_detectorParameter.m_value.toBool());
@@ -46,7 +46,7 @@ void DetectorParameterWidget::load()
     }
         break;
 
-    case DetectorParameter::Integer:
+    case Parameter::Integer:
     {
         QSpinBox *spinBox = new QSpinBox(this);
         spinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
@@ -57,7 +57,7 @@ void DetectorParameterWidget::load()
     }
         break;
 
-    case DetectorParameter::Real:
+    case Parameter::Real:
     {
         QDoubleSpinBox *doubleSpinBox = new QDoubleSpinBox(this);
         doubleSpinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
@@ -68,7 +68,7 @@ void DetectorParameterWidget::load()
     }
         break;
 
-    case DetectorParameter::String:
+    case Parameter::String:
     {
         QLineEdit *lineEdit = new QLineEdit(this);
         lineEdit->setText(m_detectorParameter.m_value.toString());
@@ -77,7 +77,7 @@ void DetectorParameterWidget::load()
     }
         break;
 
-    case DetectorParameter::Color:
+    case Parameter::Color:
     {
         QPushButton *pushButton = new QPushButton(tr("Select"), this);
         connect(pushButton, SIGNAL(clicked()), SLOT(save()));
@@ -93,17 +93,17 @@ void DetectorParameterWidget::load()
     }
 }
 
-void DetectorParameterWidget::save()
+void ParameterWidget::save()
 {
     QWidget *widget = dynamic_cast<QWidget*>(sender());
     Q_ASSERT(widget != NULL);
 
     switch (m_detectorParameter.m_type)
     {
-    case DetectorParameter::Unknown:
+    case Parameter::Unknown:
         break;
 
-    case DetectorParameter::Boolean:
+    case Parameter::Boolean:
     {
         QCheckBox *checkBox = dynamic_cast<QCheckBox*>(widget);
         Q_ASSERT(checkBox != NULL);
@@ -112,7 +112,7 @@ void DetectorParameterWidget::save()
     }
         break;
 
-    case DetectorParameter::Integer:
+    case Parameter::Integer:
     {
         QSpinBox *spinBox = dynamic_cast<QSpinBox*>(widget);
         Q_ASSERT(spinBox != NULL);
@@ -121,7 +121,7 @@ void DetectorParameterWidget::save()
     }
         break;
 
-    case DetectorParameter::Real:
+    case Parameter::Real:
     {
         QDoubleSpinBox *doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(widget);
         Q_ASSERT(doubleSpinBox != NULL);
@@ -130,7 +130,7 @@ void DetectorParameterWidget::save()
     }
         break;
 
-    case DetectorParameter::String:
+    case Parameter::String:
     {
         QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(widget);
         Q_ASSERT(lineEdit != NULL);
@@ -139,7 +139,7 @@ void DetectorParameterWidget::save()
     }
         break;
 
-    case DetectorParameter::Color:
+    case Parameter::Color:
     {
         QPushButton *pushButton = dynamic_cast<QPushButton*>(widget);
         Q_ASSERT(pushButton != NULL);
@@ -154,7 +154,7 @@ void DetectorParameterWidget::save()
     emit dataChanged();
 }
 
-void DetectorParameterWidget::on_btnReset_clicked()
+void ParameterWidget::on_btnReset_clicked()
 {
     m_detectorParameter.m_value = m_detectorParameter.m_defaultValue;
     load();

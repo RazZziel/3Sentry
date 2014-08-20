@@ -25,9 +25,10 @@ SOURCES += \
     audio.cpp \
     sentryweb.cpp \
     sentryinput.cpp \
-    detector/detectorparameter.cpp \
-    ui/detectorparameterwidget.cpp \
-    util.cpp
+    util.cpp \
+    parameter.cpp \
+    ui/parameterwidget.cpp \
+    parametermanager.cpp
 HEADERS += \
     controller.h \
     hardware/hardware.h \
@@ -45,13 +46,14 @@ HEADERS += \
     audio.h \
     sentryweb.h \
     sentryinput.h \
-    detector/detectorparameter.h \
-    ui/detectorparameterwidget.h \
-    util.h
+    util.h \
+    parameter.h \
+    ui/parameterwidget.h \
+    parametermanager.h
 
 FORMS += \
     sentryui.ui \
-    ui/detectorparameterwidget.ui
+    ui/parameterwidget.ui
 
 
 SOURCES += \

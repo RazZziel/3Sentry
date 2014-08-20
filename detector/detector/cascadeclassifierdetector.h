@@ -24,7 +24,7 @@ public:
     QList<cv::Rect> detect(const cv::Mat& image) const;
 
 private:
-    DetectorParameterList createParameters() const;
+    ParameterList createParameters() const;
     QList<cv::Rect> filterResults(const QList<cv::Rect> &objects) const;
 
     QList<cv::Rect> detectMultiScale(const cv::Mat& image, cv::Size minSize, cv::Size maxSize, double scaleFactor, int minNeighbors) const;

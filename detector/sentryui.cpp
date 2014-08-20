@@ -10,8 +10,7 @@
 #include "util.h"
 #include "audio.h"
 #include "detector/detector.h"
-#include "detector/detectorparameter.h"
-#include "ui/detectorparameterwidget.h"
+#include "ui/parameterwidget.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     QMainWindow(parent),
@@ -41,6 +40,9 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     }
     connect(ui->lstDetectors, SIGNAL(activated(QModelIndex)), SLOT(updateDetectorParameters()));
     updateDetectorParameters();
+
+    updateHardwareParameters();
+    updateControllerParameters();
 
     connect(ui->wOpenCV, SIGNAL(clicked(Qt::MouseButton,QPoint)), SLOT(onOpenCvViewClicked(Qt::MouseButton,QPoint)));
 
@@ -125,16 +127,32 @@ void SentryUI::updateDetectorParameters()
         return;
 
     Detector *detector = m_controller->detectors().value(ui->lstDetectors->currentRow());
-    DetectorParameterMap &parameters = detector->getParameters();
+    fillParameterForm(detector->parameterManager(), ui->formLayout_detectorProperties);
+}
 
-    foreach (const QString &key, parameters.keys())
+void SentryUI::updateHardwareParameters()
+{
+    Util::clearLayout(ui->formLayout_hardwareProperties);
+    fillParameterForm(m_controller->hardware()->parameterManager(), ui->formLayout_hardwareProperties);
+}
+
+void SentryUI::updateControllerParameters()
+{
+    Util::clearLayout(ui->formLayout_controllerProperties);
+    fillParameterForm(m_controller->parameterManager(), ui->formLayout_controllerProperties);
+}
+
+void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout *layout)
+{
+    foreach (const QString &key, parameterManager->parameters().keys())
     {
-        DetectorParameter &parameter = parameters[key];
-        DetectorParameterWidget *w = new DetectorParameterWidget(parameter, this);
-        ui->formLayout_detectorProperties->addRow(parameter.m_name, w);
+        Parameter &parameter = parameterManager->parameters()[key];
+        ParameterWidget *w = new ParameterWidget(parameter, this);
+        layout->addRow(parameter.m_name, w);
 
         // TODO: Don't save every single value, only the one modified
-        connect(w, SIGNAL(dataChanged()), detector, SLOT(saveParameterValues()));
+        connect(w, SIGNAL(dataChanged()),
+                parameterManager, SLOT(saveParameterValues()));
     }
 }
 

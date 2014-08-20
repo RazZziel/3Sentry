@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DetectorParameterWidget</class>
- <widget class="QWidget" name="DetectorParameterWidget">
+ <class>ParameterWidget</class>
+ <widget class="QWidget" name="ParameterWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

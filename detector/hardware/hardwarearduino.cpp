@@ -18,6 +18,13 @@ HardwareArduino::~HardwareArduino()
     m_serialPort->close();
 }
 
+ParameterList HardwareArduino::createParameters() const
+{
+    ParameterList list = Hardware::createParameters();
+    list << Parameter("portName", tr("Port name"), Parameter::String, "/dev/ttyUSB0");
+    return list;
+}
+
 bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
     Q_UNUSED(pantilt);
