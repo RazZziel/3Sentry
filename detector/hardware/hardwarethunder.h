@@ -1,13 +1,16 @@
-#ifndef HARDWAREARDUINO_H
-#define HARDWAREARDUINO_H
+#ifndef HARDWARETHUNDER_H
+#define HARDWARETHUNDER_H
 
 #include "hardware.h"
 
-class HardwareArduino : public Hardware
+struct usb_dev_handle;
+
+class HardwareThunder : public Hardware
 {
     Q_OBJECT
 public:
-    HardwareArduino(QObject *parent=0);
+    HardwareThunder(QObject *parent=0);
+    ~HardwareThunder();
 
     bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
@@ -15,6 +18,12 @@ public:
     bool targetRelative(Pantilt pantilt, int dx, int dy);
     bool enableFiring(Gun gun);
     bool stopFiring(Gun gun);
+
+private:
+    int send_message(char* msg, int index);
+    void movement_handler(char control);
+
+    usb_dev_handle* m_usbHandler;
 };
 
-#endif // HARDWAREARDUINO_H
+#endif // HARDWARETHUNDER_H

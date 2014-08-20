@@ -32,7 +32,7 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
     return false;
 }
 
-bool HardwareArduino::targetRelative(Pantilt pantilt, uint dx, uint dy)
+bool HardwareArduino::targetRelative(Pantilt pantilt, int dx, int dy)
 {
     Q_UNUSED(pantilt);
     Q_UNUSED(dx);

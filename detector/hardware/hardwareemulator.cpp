@@ -45,7 +45,7 @@ bool HardwareEmulator::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conv
     return true;
 }
 
-bool HardwareEmulator::targetRelative(Pantilt pantilt, uint dx, uint dy)
+bool HardwareEmulator::targetRelative(Pantilt pantilt, int dx, int dy)
 {
     m_currentHwTarget[pantilt].rx() += dx;
     m_currentHwTarget[pantilt].ry() += dy;

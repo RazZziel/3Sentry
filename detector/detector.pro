@@ -5,6 +5,7 @@ QT += core gui opengl multimedia
 
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv
+PKGCONFIG += libusb # For HardwareThunder
 
 SOURCES += \
     main.cpp \
@@ -12,6 +13,7 @@ SOURCES += \
     hardware/hardware.cpp \
     hardware/hardwareemulator.cpp \
     hardware/hardwarearduino.cpp \
+    hardware/hardwarethunder.cpp \
     detector/detector.cpp \
     detector/movementdetector.cpp \
     detector/colordetector.cpp \
@@ -31,6 +33,7 @@ HEADERS += \
     hardware/hardware.h \
     hardware/hardwareemulator.h \
     hardware/hardwarearduino.h \
+    hardware/hardwarethunder.h \
     detector/detector.h \
     detector/movementdetector.h \
     detector/colordetector.h \
