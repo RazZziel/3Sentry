@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QSettings>
+#include <QKeyEvent>
 #include "sentryui.h"
 #include "ui_sentryui.h"
 #include "controller.h"
@@ -18,6 +19,7 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     m_controller(controller)
 {
     ui->setupUi(this);
+    QApplication::instance()->installEventFilter(this);
 
     connect(m_controller, SIGNAL(newOpenCVFrame(cv::Mat)), SLOT(onNewOpenCVFrame(cv::Mat)));
 
@@ -155,6 +157,58 @@ void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout
                 parameterManager, SLOT(saveParameterValues()));
     }
 }
+
+
+bool SentryUI::eventFilter(QObject *object, QEvent *event)
+{
+    Q_UNUSED(object);
+
+    if (event->type() == QEvent::KeyPress ||
+            event->type() == QEvent::KeyRelease)
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+        switch (keyEvent->key())
+        {
+        case Qt::Key_Up:
+            if (event->type() == QEvent::KeyPress)
+                m_controller->targetRelative(Hardware::Body, 0, 1);
+            else
+                m_controller->targetRelative(Hardware::Body, 0, 0);
+            return true;
+
+        case Qt::Key_Down:
+            if (event->type() == QEvent::KeyPress)
+                m_controller->targetRelative(Hardware::Body, 0, -1);
+            else
+                m_controller->targetRelative(Hardware::Body, 0, 0);
+            return true;
+
+        case Qt::Key_Left:
+            if (event->type() == QEvent::KeyPress)
+                m_controller->targetRelative(Hardware::Body, -1, 0);
+            else
+                m_controller->targetRelative(Hardware::Body, 0, 0);
+            return true;
+
+        case Qt::Key_Right:
+            if (event->type() == QEvent::KeyPress)
+                m_controller->targetRelative(Hardware::Body, 1, 0);
+            else
+                m_controller->targetRelative(Hardware::Body, 0, 0);
+            return true;
+
+        case Qt::Key_Space:
+            if (event->type() == QEvent::KeyPress)
+                m_controller->enableFiring(Hardware::RightGun);
+            else
+                m_controller->stopFiring(Hardware::RightGun);
+            return true;
+        }
+    }
+
+    return false;
+ }
 
 void SentryUI::on_btnStartCalibration_clicked()
 {

@@ -1,5 +1,6 @@
 #include "hardwarethunder.h"
 #include <usb.h>
+#include <QDebug>
 
 HardwareThunder::HardwareThunder(QObject *parent) :
     Hardware(parent)
@@ -16,18 +17,35 @@ HardwareThunder::HardwareThunder(QObject *parent) :
 
         for (dev = bus->devices; dev; dev = dev->next)
         {
-            if (dev->descriptor.idVendor == 6465)
+            if (dev->descriptor.idVendor == 0x2123 &&
+                    dev->descriptor.idProduct == 0x1010)
             {
-                m_usbHandler = usb_open(dev);
+                qDebug() << "Found USB Raketenwerfer";
 
-                int claimed = usb_claim_interface(m_usbHandler, 0);
-                if (claimed == 0)
+                m_usbHandler = usb_open(dev);
+                if (m_usbHandler)
                 {
-                    // TODO
+                    int claimed = usb_claim_interface(m_usbHandler, 0);
+                    if (claimed == 0)
+                    {
+                        qDebug() << "USB claimed";
+                        // TODO
+                        return;
+                    }
+                    else
+                    {
+                        qWarning() << "Error claiming USB interface:" << usb_strerror();
+                    }
+                }
+                else
+                {
+                    qWarning() << "Could not open USB device:" << usb_strerror();
                 }
             }
         }
     }
+
+    qWarning() << "Could not find USB device";
 }
 
 HardwareThunder::~HardwareThunder()
@@ -69,11 +87,11 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, int dx, int dy)
 
     if (dy > 0)
     {
-        movement_handler(1);
+        movement_handler(2);
     }
     else if (dy < 0)
     {
-        movement_handler(2);
+        movement_handler(1);
     }
     else if (dx < 0)
     {
@@ -107,7 +125,13 @@ bool HardwareThunder::stopFiring(Gun gun)
 
 int HardwareThunder::send_message(char* msg, int index)
 {
-    int ret = usb_control_msg(m_usbHandler, 0x21, 0x9, 0x200, index, msg, 8, 1000);
+    if (!m_usbHandler)
+    {
+        qWarning() << "USB handler not initialized";
+        return -1;
+    }
+
+    int ret = usb_control_msg(m_usbHandler, 0x21, 0x9, 0, index, msg, 8, 1000);
 
     //be sure that msg is all zeroes again
     msg[0] = 0x0;
@@ -126,8 +150,8 @@ void HardwareThunder::movement_handler(char control)
 {
     char msg[8];
     //reset
-    msg[0] = 0x0;
-    msg[1] = 0x0;
+    msg[0] = 0x2;
+    msg[1] = control;
     msg[2] = 0x0;
     msg[3] = 0x0;
     msg[4] = 0x0;
@@ -136,12 +160,5 @@ void HardwareThunder::movement_handler(char control)
     msg[7] = 0x0;
 
     //send 0s
-    send_message(msg, 1);
-
-    //send control
-    msg[0] = control;
     send_message(msg, 0);
-
-    //and more zeroes
-    send_message(msg, 1);
 }

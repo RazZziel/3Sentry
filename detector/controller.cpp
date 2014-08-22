@@ -52,8 +52,8 @@ Controller::Controller(QObject *parent) :
     m_parameterManager->init();
 
     //m_hardware = new HardwareArduino();
-    m_hardware = new HardwareEmulator();
-    //m_hardware = new HardwareThunder();
+    //m_hardware = new HardwareEmulator();
+    m_hardware = new HardwareThunder();
     m_hardware->init();
 
     m_detectors << new MovementDetector(this)

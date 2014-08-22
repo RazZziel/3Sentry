@@ -26,6 +26,7 @@ public:
 
 private:
     void fillParameterForm(ParameterManager *parameterManager, QFormLayout *layout);
+    bool eventFilter(QObject *object, QEvent *event);
 
     Ui::SentryUI *ui;
     Controller *m_controller;
