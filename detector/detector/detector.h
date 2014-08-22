@@ -28,6 +28,9 @@ protected:
 
     ParameterManager *m_parameterManager;
     bool m_enabled;
+
+private slots:
+    void onParametersChanged();
 };
 
 #endif // DETECTOR_H

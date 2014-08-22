@@ -29,6 +29,9 @@ public slots:
 protected:
     ParameterMap m_parameters;
     ParameterOwner *m_parameterOwner;
+
+signals:
+    void parametersChanged();
 };
 
 #endif // PARAMETERMANAGER_H
