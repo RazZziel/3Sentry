@@ -21,6 +21,7 @@ int main(int argc, char** argv)
     Q_UNUSED(web);
 
     SentryInput input(&controller);
+    input.start();
     Q_UNUSED(input);
 
 #if 1
