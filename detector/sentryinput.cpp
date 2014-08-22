@@ -27,6 +27,12 @@ void SentryInput::run()
         {
             switch(event.type)
             {
+            case SDL_JOYBUTTONUP:
+                m_controller->enableFiring(Hardware::RightGun);
+                break;
+            case SDL_JOYBUTTONUP:
+                m_controller->stopFiring(Hardware::RightGun);
+                break;
             case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
                 if ( ( event.jaxis.value < -MIN_JOY ) || (event.jaxis.value > MIN_JOY ) )
                 {
