@@ -1,5 +1,5 @@
 #include "parameterwidget.h"
-#include "ui_detectorparameterwidget.h"
+#include "ui_parameterwidget.h"
 
 #include <QCheckBox>
 #include <QSpinBox>
