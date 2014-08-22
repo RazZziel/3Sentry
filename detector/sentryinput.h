@@ -22,6 +22,10 @@ private:
 
     int m_max_joy;
 
+    char m_left_fire_button;
+    char m_right_fire_button;
+    char m_laser_button;
+
 };
 
 #endif // SENTRYINPUT_H

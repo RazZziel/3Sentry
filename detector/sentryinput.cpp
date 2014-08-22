@@ -16,6 +16,10 @@ SentryInput::SentryInput(Controller *controller) :
     // Resources:
     //   https://code.google.com/p/joypick/
 
+    m_left_fire_button = 6;
+    m_right_fire_button = 7;
+    m_laser_button = 1;
+
     init();
 }
 
@@ -28,11 +32,37 @@ void SentryInput::run()
             switch(event.type)
             {
             case SDL_JOYBUTTONDOWN:
-                m_controller->enableFiring(Hardware::RightGun);
+                qDebug() << "Pushed button" << event.jbutton.button;
+                if(event.jbutton.button == m_left_fire_button)
+                {
+                    m_controller->enableFiring(Hardware::LeftGun);
+                }
+                else if(event.jbutton.button == m_right_fire_button)
+                {
+                    m_controller->enableFiring(Hardware::RightGun);
+                }
+                else if(event.jbutton.button == m_laser_button)
+                {
+                    m_controller->enableFiring(Hardware::EyeLaser);
+                }
                 break;
+
             case SDL_JOYBUTTONUP:
-                m_controller->stopFiring(Hardware::RightGun);
+                qDebug() << "Released button" << event.jbutton.button;
+                if(event.jbutton.button == m_left_fire_button)
+                {
+                    m_controller->stopFiring(Hardware::LeftGun);
+                }
+                if(event.jbutton.button == m_right_fire_button)
+                {
+                    m_controller->stopFiring(Hardware::RightGun);
+                }
+                if(event.jbutton.button == m_laser_button)
+                {
+                    m_controller->stopFiring(Hardware::EyeLaser);
+                }
                 break;
+
             case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
                 if ( ( event.jaxis.value < -MIN_JOY ) || (event.jaxis.value > MIN_JOY ) )
                 {
