@@ -5,6 +5,7 @@ Detector::Detector(QObject *parent) :
     m_parameterManager(new ParameterManager(this, this)),
     m_enabled(false)
 {
+    connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
 }
 
 void Detector::setEnabled(bool enabled)
@@ -105,4 +106,9 @@ QList<cv::Rect> Detector::filterResults(const QList<cv::Rect> &objects) const
     }
 
     return list;
+}
+
+void Detector::onParametersChanged()
+{
+    m_enabled = m_parameterManager->parameters().value("enabled").m_value.toBool();
 }

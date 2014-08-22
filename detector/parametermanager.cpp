@@ -62,7 +62,7 @@ void ParameterManager::loadParameterValues()
     }
     settings.endGroup();
 
-    //m_enabled = m_parameters.value("enabled").m_value.toBool();
+    emit parametersChanged();
 }
 
 void ParameterManager::saveParameterValues()
@@ -78,5 +78,5 @@ void ParameterManager::saveParameterValues()
     }
     settings.endGroup();
 
-    //m_enabled = m_parameters.value("enabled").m_value.toBool();
+    emit parametersChanged();
 }
