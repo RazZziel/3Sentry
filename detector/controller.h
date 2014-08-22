@@ -44,7 +44,7 @@ public slots:
     bool abortCallbration();
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
-    bool targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy);
+    bool targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy);
     bool enableFiring(Hardware::Gun gun);
     bool stopFiring(Hardware::Gun gun);
 

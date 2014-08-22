@@ -311,7 +311,7 @@ bool Controller::targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y)
     return m_hardware->targetAbsolute(pantilt, x, y);
 }
 
-bool Controller::targetRelative(Hardware::Pantilt pantilt, uint dx, uint dy)
+bool Controller::targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy)
 {
     return m_hardware->targetRelative(pantilt, dx, dy);
 }

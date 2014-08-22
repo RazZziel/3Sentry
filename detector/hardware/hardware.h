@@ -27,7 +27,7 @@ public:
     // CalibrationData <xyOnHardware, xyOnCam>
     // CalibrationData <XY,XY'>
     typedef QPair<QPoint,QPoint> PointPair;
-    typedef QList< PointPair > CalibrationData;
+    typedef QList<PointPair> CalibrationData;
 
     void init();
     QString settingsGroup();
@@ -40,7 +40,7 @@ public:
 
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
-    virtual bool targetRelative(Pantilt pantilt, int dx, int dy) =0;
+    virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
     virtual bool enableFiring(Gun gun) =0;
     virtual bool stopFiring(Gun gun) =0;
 

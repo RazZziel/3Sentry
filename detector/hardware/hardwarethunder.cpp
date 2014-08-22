@@ -81,7 +81,7 @@ bool HardwareThunder::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
     return false;
 }
 
-bool HardwareThunder::targetRelative(Pantilt pantilt, int dx, int dy)
+bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
     Q_UNUSED(pantilt);
 
