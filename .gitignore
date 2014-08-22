@@ -1,7 +1,7 @@
 a.out
 detector/trackface/trackface
 *.mp4
-*.pro.user
+*.pro.user*
 *.qbs.user
 build-*
 *-build

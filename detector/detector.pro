@@ -6,6 +6,7 @@ QT += core gui opengl multimedia serialport
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv
 PKGCONFIG += libusb # For HardwareThunder
+PKGCONFIG += sdl2
 
 SOURCES += \
     main.cpp \
