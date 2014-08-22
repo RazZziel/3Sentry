@@ -27,7 +27,7 @@ void SentryInput::run()
         {
             switch(event.type)
             {
-            case SDL_JOYBUTTONUP:
+            case SDL_JOYBUTTONDOWN:
                 m_controller->enableFiring(Hardware::RightGun);
                 break;
             case SDL_JOYBUTTONUP:
