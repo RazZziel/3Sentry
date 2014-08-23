@@ -30,6 +30,7 @@ private:
 
     Ui::SentryUI *ui;
     Controller *m_controller;
+    QMap<Qt::Key,bool> m_keyState;
 
 private slots:
     void onNewOpenCVFrame(cv::Mat image);

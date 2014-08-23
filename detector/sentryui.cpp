@@ -166,44 +166,66 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
     if (event->type() == QEvent::KeyPress ||
             event->type() == QEvent::KeyRelease)
     {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        m_keyState[(Qt::Key)keyEvent->key()] = (event->type() == QEvent::KeyPress);
 
-        switch (keyEvent->key())
+        bool move = (keyEvent->key() == Qt::Key_Up ||
+                     keyEvent->key() == Qt::Key_Down ||
+                     keyEvent->key() == Qt::Key_Left ||
+                     keyEvent->key() == Qt::Key_Right);
+
+        if (move)
         {
-        case Qt::Key_Up:
-            if (event->type() == QEvent::KeyPress)
-                m_controller->targetRelative(Hardware::Body, 0, 1);
-            else
-                m_controller->targetRelative(Hardware::Body, 0, 0);
-            return true;
+            qreal dx = 0;
+            qreal dy = 0;
 
-        case Qt::Key_Down:
-            if (event->type() == QEvent::KeyPress)
-                m_controller->targetRelative(Hardware::Body, 0, -1);
-            else
-                m_controller->targetRelative(Hardware::Body, 0, 0);
-            return true;
+            if (m_keyState[Qt::Key_Up])
+                dy = 1;
+            else if (m_keyState[Qt::Key_Down])
+                dy = -1;
+            else if (m_keyState[Qt::Key_Left])
+                dx = -1;
+            else if (m_keyState[Qt::Key_Right])
+                dx = 1;
 
-        case Qt::Key_Left:
+            m_controller->targetRelative(Hardware::Body, dx, dy);
+        }
+        else
+        {
             if (event->type() == QEvent::KeyPress)
-                m_controller->targetRelative(Hardware::Body, -1, 0);
-            else
-                m_controller->targetRelative(Hardware::Body, 0, 0);
-            return true;
+            {
+                switch (keyEvent->key())
+                {
+                case Qt::Key_1:
+                    m_controller->enableFiring(Hardware::EyeLaser);
+                    break;
 
-        case Qt::Key_Right:
-            if (event->type() == QEvent::KeyPress)
-                m_controller->targetRelative(Hardware::Body, 1, 0);
-            else
-                m_controller->targetRelative(Hardware::Body, 0, 0);
-            return true;
+                case Qt::Key_2:
+                    m_controller->enableFiring(Hardware::LeftGun);
+                    break;
 
-        case Qt::Key_Space:
-            if (event->type() == QEvent::KeyPress)
-                m_controller->enableFiring(Hardware::RightGun);
+                case Qt::Key_3:
+                    m_controller->enableFiring(Hardware::RightGun);
+                    break;
+                }
+            }
             else
-                m_controller->stopFiring(Hardware::RightGun);
-            return true;
+            {
+                switch (keyEvent->key())
+                {
+                case Qt::Key_1:
+                    m_controller->stopFiring(Hardware::EyeLaser);
+                    break;
+
+                case Qt::Key_2:
+                    m_controller->stopFiring(Hardware::LeftGun);
+                    break;
+
+                case Qt::Key_3:
+                    m_controller->stopFiring(Hardware::RightGun);
+                    break;
+                }
+            }
         }
     }
 
