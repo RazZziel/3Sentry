@@ -155,12 +155,12 @@ void ParameterWidget::save()
         break;
     }
 
-    emit dataChanged();
+    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
 }
 
 void ParameterWidget::on_btnReset_clicked()
 {
     m_detectorParameter.m_value = m_detectorParameter.m_defaultValue;
     load();
-    emit dataChanged();
+    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
 }

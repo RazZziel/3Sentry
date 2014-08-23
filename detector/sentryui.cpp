@@ -153,8 +153,8 @@ void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout
         layout->addRow(parameter.m_name, w);
 
         // TODO: Don't save every single value, only the one modified
-        connect(w, SIGNAL(dataChanged()),
-                parameterManager, SLOT(saveParameterValues()));
+        connect(w, SIGNAL(valueChanged(QString,QVariant)),
+                parameterManager, SLOT(setParameter(QString,QVariant)));
     }
 }
 
