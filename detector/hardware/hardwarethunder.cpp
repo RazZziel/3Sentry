@@ -97,6 +97,7 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     else
     {
         movement_handler(2, 0);
+        //movement_handler(2, 0x20);
     }
 
     return false;
@@ -127,50 +128,26 @@ bool HardwareThunder::stopFiring(Gun gun)
         break;
     case RightGun:
     case LeftGun:
-        movement_handler(2, 0);
+        //movement_handler(2, 0);
+        //movement_handler(2, 0x20);
         break;
     }
 
     return true;
 }
 
-int HardwareThunder::send_message(char* msg, int index)
+void HardwareThunder::movement_handler(char b0, char b1)
 {
     if (!m_usbHandler)
     {
         qWarning() << "USB handler not initialized";
-        return -1;
+        return;
     }
 
-    int ret = usb_control_msg(m_usbHandler, 0x21, 0x9, 0, index, msg, 8, 1000);
-
-    //be sure that msg is all zeroes again
-    msg[0] = 0x0;
-    msg[1] = 0x0;
-    msg[2] = 0x0;
-    msg[3] = 0x0;
-    msg[4] = 0x0;
-    msg[5] = 0x0;
-    msg[6] = 0x0;
-    msg[7] = 0x0;
-
-    return ret;
-}
-
-void HardwareThunder::movement_handler(char b0, char b1)
-{
     char msg[8];
-
-    //reset
+    memset(msg, 0, sizeof(msg));
     msg[0] = b0;
     msg[1] = b1;
-    msg[2] = 0x0;
-    msg[3] = 0x0;
-    msg[4] = 0x0;
-    msg[5] = 0x0;
-    msg[6] = 0x0;
-    msg[7] = 0x0;
 
-    //send 0s
-    send_message(msg, 0);
+    usb_control_msg(m_usbHandler, 0x21, 0x9, 0, 0, msg, 8, 1000);
 }
