@@ -110,8 +110,15 @@ void SentryInput::run()
                         break;
                     }
                 }
-                m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
-                m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+
+                if (event.jaxis.axis == 0 || event.jaxis.axis == 1)
+                {
+                    m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
+                }
+                else
+                {
+                    m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+                }
                 break;
             }
         }
