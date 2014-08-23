@@ -49,8 +49,10 @@ void ParameterWidget::load()
     case Parameter::Integer:
     {
         QSpinBox *spinBox = new QSpinBox(this);
-        spinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
-        spinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
+        if (!m_detectorParameter.m_minValue.isNull())
+            spinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
+        if (!m_detectorParameter.m_maxValue.isNull())
+            spinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
         spinBox->setValue(m_detectorParameter.m_value.toInt());
         connect(spinBox, SIGNAL(valueChanged(int)), SLOT(save()));
         widget = spinBox;
@@ -60,8 +62,10 @@ void ParameterWidget::load()
     case Parameter::Real:
     {
         QDoubleSpinBox *doubleSpinBox = new QDoubleSpinBox(this);
-        doubleSpinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
-        doubleSpinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
+        if (!m_detectorParameter.m_minValue.isNull())
+            doubleSpinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
+        if (!m_detectorParameter.m_maxValue.isNull())
+            doubleSpinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
         doubleSpinBox->setValue(m_detectorParameter.m_value.toDouble());
         connect(doubleSpinBox, SIGNAL(valueChanged(double)), SLOT(save()));
         widget = doubleSpinBox;
@@ -151,12 +155,12 @@ void ParameterWidget::save()
         break;
     }
 
-    emit dataChanged();
+    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
 }
 
 void ParameterWidget::on_btnReset_clicked()
 {
     m_detectorParameter.m_value = m_detectorParameter.m_defaultValue;
     load();
-    emit dataChanged();
+    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
 }

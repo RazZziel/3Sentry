@@ -104,7 +104,7 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return true;
 }
 
-bool HardwareThunder::enableFiring(Gun gun)
+bool HardwareThunder::startFiring(Gun gun)
 {
     switch (gun)
     {

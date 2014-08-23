@@ -13,6 +13,11 @@ ParameterMap &ParameterManager::parameters()
     return m_parameters;
 }
 
+QVariant ParameterManager::value(const QString &key) const
+{
+    return m_parameters.value(key).m_value;
+}
+
 /// This must be called externally, because C++ sucks dicks and can't
 /// implement correct inherited method overriding in the constructor
 void ParameterManager::init()
@@ -32,6 +37,7 @@ void ParameterManager::setParameter(const QString &name, const QVariant &value)
 {
     if (m_parameters.contains(name))
     {
+        qDebug() << "Setting" << name << "=" << value;
         m_parameters[name].m_value = value;
         saveParameter(name, value);
     }
@@ -39,6 +45,9 @@ void ParameterManager::setParameter(const QString &name, const QVariant &value)
     {
         qWarning() << "This detector doesn't have a parameter named" << name;
     }
+
+    emit parameterChanged(name, value);
+    emit parametersChanged();
 }
 
 void ParameterManager::saveParameter(const QString &name, const QVariant &value)

@@ -1,4 +1,5 @@
 #include "hardwareemulator.h"
+#include <QDebug>
 
 HardwareEmulator::HardwareEmulator(QObject *parent) :
     Hardware(parent)
@@ -8,6 +9,12 @@ HardwareEmulator::HardwareEmulator(QObject *parent) :
         Pantilt pantilt = (Pantilt) i;
         m_currentHwTarget[pantilt] = QPoint(0,0);
         m_currentHwPosition[pantilt] = QPoint(0,0);
+    }
+
+    for (int i=EyeLaser; i<=LeftGun; i++)
+    {
+        Gun gun = (Gun) i;
+        m_firing[gun] = false;
     }
 
     m_pantiltSpeed[Body] = 0.1;
@@ -53,15 +60,23 @@ bool HardwareEmulator::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return true;
 }
 
-bool HardwareEmulator::enableFiring(Gun gun)
+bool HardwareEmulator::startFiring(Gun gun)
 {
-    m_firing[gun] = true;
+    if (!m_firing[gun])
+    {
+        m_firing[gun] = true;
+        qDebug() << "Start firing" << gun;
+    }
     return true;
 }
 
 bool HardwareEmulator::stopFiring(Gun gun)
 {
-    m_firing[gun] = false;
+    if (m_firing[gun])
+    {
+        m_firing[gun] = false;
+        qDebug() << "Stop firing" << gun;
+    }
     return true;
 }
 

@@ -28,7 +28,7 @@ private slots:
     void on_btnReset_clicked();
 
 signals:
-    void dataChanged();
+    void valueChanged(const QString &code, const QVariant &value);
 };
 
 #endif // PARAMETERWIDGET_H

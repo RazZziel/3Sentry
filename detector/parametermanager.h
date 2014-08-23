@@ -18,20 +18,24 @@ public:
     explicit ParameterManager(ParameterOwner *parameterOwner, QObject *parent = 0);
 
     ParameterMap &parameters();
-    void setParameter(const QString &name, const QVariant &value);
-    void saveParameter(const QString &name, const QVariant &value);
+    QVariant value(const QString &key) const;
 
 public slots:
     void init();
     void loadParameterValues();
     void saveParameterValues();
+    void setParameter(const QString &name, const QVariant &value);
 
 protected:
     ParameterMap m_parameters;
     ParameterOwner *m_parameterOwner;
 
+private:
+    void saveParameter(const QString &name, const QVariant &value);
+
 signals:
     void parametersChanged();
+    void parameterChanged(const QString &name, const QVariant &value);
 };
 
 #endif // PARAMETERMANAGER_H
