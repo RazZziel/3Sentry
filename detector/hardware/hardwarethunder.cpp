@@ -4,7 +4,8 @@
 #include <QTimer>
 
 HardwareThunder::HardwareThunder(QObject *parent) :
-    Hardware(parent)
+    Hardware(parent),
+    m_usbHandler(NULL)
 {
     usb_init();
     usb_find_busses();
@@ -84,23 +85,23 @@ bool HardwareThunder::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
 
 bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
-    Q_UNUSED(pantilt);
+    if (pantilt == Body)
+    {
+        if (qAbs(dy) > qAbs(dx) && dy != 0)
+        {
+            movement_handler(2, dy < 0 ? 1 : 2);
+        }
+        else if (qAbs(dy) < qAbs(dx) && dx != 0)
+        {
+            movement_handler(2, dx < 0 ? 4 : 8);
+        }
+        else
+        {
+            movement_handler(2, 0);
+        }
+    }
 
-    if (qAbs(dy) > qAbs(dx) && dy != 0)
-    {
-        movement_handler(2, dy < 0 ? 1 : 2);
-    }
-    else if (qAbs(dy) < qAbs(dx) && dx != 0)
-    {
-        movement_handler(2, dx < 0 ? 4 : 8);
-    }
-    else
-    {
-        movement_handler(2, 0);
-        //movement_handler(2, 0x20);
-    }
-
-    return false;
+    return true;
 }
 
 bool HardwareThunder::enableFiring(Gun gun)
@@ -129,7 +130,6 @@ bool HardwareThunder::stopFiring(Gun gun)
     case RightGun:
     case LeftGun:
         //movement_handler(2, 0);
-        //movement_handler(2, 0x20);
         break;
     }
 
