@@ -89,6 +89,17 @@ void SentryInput::run()
                         break;
                     }
                     break;
+                } else {
+                    switch(event.jaxis.axis) {
+                    case 0:
+                    case 1:
+                        m_controller->targetRelative(Hardware::Eye, 0, 0);
+                        break;
+                    case 2:
+                    case 3:
+                        m_controller->targetRelative(Hardware::Body, 0, 0);
+                        break;
+                    }
                 }
             }
         }
