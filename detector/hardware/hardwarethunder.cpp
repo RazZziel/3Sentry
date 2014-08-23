@@ -86,28 +86,20 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
     Q_UNUSED(pantilt);
 
-    qreal ms = 0;
-
-    qDebug() << "~" << dy << dx;
     if (qAbs(dy) > qAbs(dx) && dy != 0)
     {
-        ms = dy;
         movement_handler(2, dy < 0 ? 1 : 2);
     }
     else if (qAbs(dy) < qAbs(dx) && dx != 0)
     {
-        ms = dx;
         movement_handler(2, dx < 0 ? 4 : 8);
     }
-
-    QTimer::singleShot(qAbs(ms)*10, this, SLOT(stop()));
+    else
+    {
+        movement_handler(2, 0);
+    }
 
     return false;
-}
-
-void HardwareThunder::stop()
-{
-    movement_handler(2, 0);
 }
 
 bool HardwareThunder::enableFiring(Gun gun)
@@ -115,11 +107,11 @@ bool HardwareThunder::enableFiring(Gun gun)
     switch (gun)
     {
     case EyeLaser:
-    case RightGun:
-        movement_handler(2, 0x10);
-        break;
-    case LeftGun:
         movement_handler(3, 1);
+        break;
+    case RightGun:
+    case LeftGun:
+        movement_handler(2, 0x10);
         break;
     }
 
@@ -131,11 +123,11 @@ bool HardwareThunder::stopFiring(Gun gun)
     switch (gun)
     {
     case EyeLaser:
-    case RightGun:
-        stop();
-        break;
-    case LeftGun:
         movement_handler(3, 0);
+        break;
+    case RightGun:
+    case LeftGun:
+        movement_handler(2, 0);
         break;
     }
 

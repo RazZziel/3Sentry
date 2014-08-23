@@ -24,9 +24,6 @@ private:
     void movement_handler(char b0, char b1);
 
     usb_dev_handle* m_usbHandler;
-
-private slots:
-    void stop();
 };
 
 #endif // HARDWARETHUNDER_H
