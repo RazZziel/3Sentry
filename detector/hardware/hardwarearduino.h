@@ -2,6 +2,7 @@
 #define HARDWAREARDUINO_H
 
 #include "hardware.h"
+#include <QMutex>
 
 class QSerialPort;
 
@@ -22,8 +23,12 @@ public:
     bool stopFiring(Gun gun);
 
 private:
-    bool sendCommand(const QByteArray &ba);
+    bool sendCommand(const QByteArray &payload, QByteArray *ret_reply=NULL) const;
     QSerialPort *m_serialPort;
+    mutable QMutex m_commandMutex;
+
+private slots:
+    void onParametersChanged();
 };
 
 #endif // HARDWAREARDUINO_H
