@@ -4,11 +4,11 @@
 #include <QObject>
 #include <QThread>
 
-#include <QMap>
+#include "parametermanager.h"
 
 class Controller;
 
-class SentryInput : public QThread
+class SentryInput : public QThread, public ParameterOwner
 {
     Q_OBJECT
 public:
@@ -17,8 +17,18 @@ public:
 
     void init();
 
+    ParameterManager *paramenterManager();
+    QString settingsGroup();
+
+protected:
+    ParameterList createParameters() const;
+
+private slots:
+    void onParametersChanged();
+
 private:
     Controller *m_controller;
+    ParameterManager *m_parameterManager;
 
     int m_max_joy;
     qreal m_axis_0;

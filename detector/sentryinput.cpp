@@ -15,7 +15,8 @@ SentryInput::SentryInput(Controller *controller) :
     m_axis_0(0),
     m_axis_1(0),
     m_axis_2(0),
-    m_axis_3(0)
+    m_axis_3(0),
+    m_parameterManager(new ParameterManager(this, this))
 {
     // Resources:
     //   https://code.google.com/p/joypick/
@@ -109,8 +110,15 @@ void SentryInput::run()
                         break;
                     }
                 }
-                m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
-                m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+
+                if (event.jaxis.axis == 0 || event.jaxis.axis == 1)
+                {
+                    m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
+                }
+                else
+                {
+                    m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+                }
                 break;
             }
         }
@@ -134,3 +142,34 @@ void SentryInput::init()
 
     m_max_joy = MAX_JOY;
 }
+
+ParameterManager *SentryInput::paramenterManager()
+{
+    return m_parameterManager;
+}
+
+QString SentryInput::settingsGroup()
+{
+    return QString("Input");
+}
+
+ParameterList SentryInput::createParameters() const
+{
+    ParameterList list;
+    list << Parameter("leftGunButton", tr("Left Gun Fire Button"), Parameter::Integer, 6)
+         << Parameter("rightGunButton", tr("Right Gun Fire Button"), Parameter::Integer, 7)
+         << Parameter("laserButton", tr("Laser Fire Button"), Parameter::Integer, 1)
+         << Parameter("gunHorizAxis", tr("Horizontal Gun Axis"), Parameter::Integer, 0)
+         << Parameter("gunVertAxis", tr("Gun Vertical Axis"), Parameter::Integer, 1)
+         << Parameter("laserHorizAxis", tr("Laser Horizontal Axis"), Parameter::Integer, 2)
+         << Parameter("laserVertAxis", tr("Laser Vertical Axis"), Parameter::Integer, 3);
+
+    return list;
+}
+
+void SentryInput::onParametersChanged()
+{
+
+}
+
+
