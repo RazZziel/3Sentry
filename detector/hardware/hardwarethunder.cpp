@@ -1,6 +1,7 @@
 #include "hardwarethunder.h"
 #include <usb.h>
 #include <QDebug>
+#include <QTimer>
 
 HardwareThunder::HardwareThunder(QObject *parent) :
     Hardware(parent)
@@ -85,42 +86,60 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
     Q_UNUSED(pantilt);
 
-    if (dy > 0)
+    qreal ms = 0;
+
+    qDebug() << "~" << dy << dx;
+    if (qAbs(dy) > qAbs(dx) && dy != 0)
     {
-        movement_handler(2);
+        ms = dy;
+        movement_handler(2, dy < 0 ? 1 : 2);
     }
-    else if (dy < 0)
+    else if (qAbs(dy) < qAbs(dx) && dx != 0)
     {
-        movement_handler(1);
-    }
-    else if (dx < 0)
-    {
-        movement_handler(4);
-    }
-    else if (dx > 0)
-    {
-        movement_handler(8);
-    }
-    else
-    {
-        movement_handler(0);
+        ms = dx;
+        movement_handler(2, dx < 0 ? 4 : 8);
     }
 
+    QTimer::singleShot(qAbs(ms)*10, this, SLOT(stop()));
+
     return false;
+}
+
+void HardwareThunder::stop()
+{
+    movement_handler(2, 0);
 }
 
 bool HardwareThunder::enableFiring(Gun gun)
 {
-    Q_UNUSED(gun);
-    movement_handler(16);
-    return false;
+    switch (gun)
+    {
+    case EyeLaser:
+    case RightGun:
+        movement_handler(2, 0x10);
+        break;
+    case LeftGun:
+        movement_handler(3, 1);
+        break;
+    }
+
+    return true;
 }
 
 bool HardwareThunder::stopFiring(Gun gun)
 {
-    Q_UNUSED(gun);
-    movement_handler(0);
-    return false;
+    switch (gun)
+    {
+    case EyeLaser:
+    case RightGun:
+        stop();
+        break;
+    case LeftGun:
+        movement_handler(3, 0);
+        break;
+    }
+
+    return true;
 }
 
 int HardwareThunder::send_message(char* msg, int index)
@@ -146,12 +165,13 @@ int HardwareThunder::send_message(char* msg, int index)
     return ret;
 }
 
-void HardwareThunder::movement_handler(char control)
+void HardwareThunder::movement_handler(char b0, char b1)
 {
     char msg[8];
+
     //reset
-    msg[0] = 0x2;
-    msg[1] = control;
+    msg[0] = b0;
+    msg[1] = b1;
     msg[2] = 0x0;
     msg[3] = 0x0;
     msg[4] = 0x0;
