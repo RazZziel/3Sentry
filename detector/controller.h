@@ -45,7 +45,7 @@ public slots:
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
     bool targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy);
-    bool enableFiring(Hardware::Gun gun);
+    bool startFiring(Hardware::Gun gun);
     bool stopFiring(Hardware::Gun gun);
 
 private:

@@ -16,7 +16,7 @@ public:
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
-    bool enableFiring(Gun gun);
+    bool startFiring(Gun gun);
     bool stopFiring(Gun gun);
 
 private:

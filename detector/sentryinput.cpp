@@ -30,24 +30,25 @@ SentryInput::SentryInput(Controller *controller) :
 void SentryInput::run()
 {
     SDL_Event event;
-    while(true) {
-        while(SDL_PollEvent(&event))
+    while (true)
+    {
+        while (SDL_PollEvent(&event))
         {
-            switch(event.type)
+            switch (event.type)
             {
             case SDL_JOYBUTTONDOWN:
                 qDebug() << "Pushed button" << event.jbutton.button;
                 if(event.jbutton.button == m_left_fire_button)
                 {
-                    m_controller->enableFiring(Hardware::LeftGun);
+                    m_controller->startFiring(Hardware::LeftGun);
                 }
                 else if(event.jbutton.button == m_right_fire_button)
                 {
-                    m_controller->enableFiring(Hardware::RightGun);
+                    m_controller->startFiring(Hardware::RightGun);
                 }
                 else if(event.jbutton.button == m_laser_button)
                 {
-                    m_controller->enableFiring(Hardware::EyeLaser);
+                    m_controller->startFiring(Hardware::EyeLaser);
                 }
                 break;
 

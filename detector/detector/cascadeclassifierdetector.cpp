@@ -49,18 +49,16 @@ QString CascadeClassifierDetector::name() const
 
 QList<cv::Rect> CascadeClassifierDetector::detect(const cv::Mat& image) const
 {
-    ParameterMap &parameters = m_parameterManager->parameters();
+    bool useCudaIfAvailable = m_parameterManager->value("useCudaIfAvailable").toDouble();
+    bool useOclIfAvailable = m_parameterManager->value("useOclIfAvailable").toBool();
 
-    bool useCudaIfAvailable = parameters.value("useCudaIfAvailable").m_value.toDouble();
-    bool useOclIfAvailable = parameters.value("useOclIfAvailable").m_value.toBool();
+    double scaleFactor = m_parameterManager->value("scaleFactor").toDouble();
+    int minNeighbors = m_parameterManager->value("minNeighbors").toInt();
 
-    double scaleFactor = parameters.value("scaleFactor").m_value.toDouble();
-    int minNeighbors = parameters.value("minNeighbors").m_value.toInt();
-
-    cv::Size minSize(parameters.value("minWidth").m_value.toInt(),
-                     parameters.value("minHeight").m_value.toInt());
-    cv::Size maxSize(parameters.value("maxWidth").m_value.toInt(),
-                     parameters.value("maxHeight").m_value.toInt());
+    cv::Size minSize(m_parameterManager->value("minWidth").toInt(),
+                     m_parameterManager->value("minHeight").toInt());
+    cv::Size maxSize(m_parameterManager->value("maxWidth").toInt(),
+                     m_parameterManager->value("maxHeight").toInt());
 
     if (m_classifier_CUDA && useCudaIfAvailable)
     {
@@ -193,12 +191,10 @@ ParameterList CascadeClassifierDetector::createParameters() const
 
 QList<cv::Rect> CascadeClassifierDetector::filterResults(const QList<cv::Rect> &objects) const
 {
-    ParameterMap &parameters = m_parameterManager->parameters();
-
     // Height and width are already trimmed down by the cascade classifier
-    bool limitArea = parameters.value("limitArea").m_value.toBool();
-    int minArea = parameters.value("minArea").m_value.toInt();
-    int maxArea = parameters.value("maxArea").m_value.toInt();
+    bool limitArea = m_parameterManager->value("limitArea").toBool();
+    int minArea = m_parameterManager->value("minArea").toInt();
+    int maxArea = m_parameterManager->value("maxArea").toInt();
 
     QList<cv::Rect> list;
 

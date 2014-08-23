@@ -52,8 +52,8 @@ Controller::Controller(QObject *parent) :
     m_parameterManager->init();
 
     //m_hardware = new HardwareArduino();
-    //m_hardware = new HardwareEmulator();
-    m_hardware = new HardwareThunder();
+    m_hardware = new HardwareEmulator();
+    //m_hardware = new HardwareThunder();
     m_hardware->init();
 
     m_detectors << new MovementDetector(this)
@@ -94,7 +94,10 @@ QString Controller::settingsGroup()
 ParameterList Controller::createParameters() const
 {
     ParameterList list;
-    list << Parameter("foo", tr("Le foo"), Parameter::String, "bar");
+    list << Parameter("aimTargets", tr("Aim targets"), Parameter::Boolean, true)
+         << Parameter("tagTargets", tr("Tag targets"), Parameter::Boolean, true)
+         << Parameter("shootTargets", tr("Shoot targets"), Parameter::Boolean, false)
+         << Parameter("shootTolerance", tr("Shoot tolerance"), Parameter::Integer, 5, 0, 500);
     return list;
 }
 
@@ -160,6 +163,8 @@ void Controller::startProcessing()
 {
     m_processTimer.start();
 
+    m_hardware->startFiring(Hardware::EyeLaser);
+
     m_audio->play(Audio::Autosearch);
 }
 
@@ -171,6 +176,8 @@ void Controller::stopProcessing()
     }
 
     m_processTimer.stop();
+
+    m_hardware->stopFiring(Hardware::EyeLaser);
 
     if (m_captureDevice->isOpened())
     {
@@ -316,9 +323,9 @@ bool Controller::targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy)
     return m_hardware->targetRelative(pantilt, dx, dy);
 }
 
-bool Controller::enableFiring(Hardware::Gun gun)
+bool Controller::startFiring(Hardware::Gun gun)
 {
-    return m_hardware->enableFiring(gun);
+    return m_hardware->startFiring(gun);
 }
 
 bool Controller::stopFiring(Hardware::Gun gun)
@@ -413,12 +420,19 @@ void Controller::process()
         m_currentTarget = findCurrentTarget(m_trackingObjects);
         if (m_currentTarget)
         {
-            targetAbsolute(Hardware::Eye,
-                           m_currentTarget->center.x,
-                           m_currentTarget->center.y);
-            targetAbsolute(Hardware::Body,
-                           m_currentTarget->center.x,
-                           m_currentTarget->center.y);
+            if (m_parameterManager->value("tagTargets").toBool())
+            {
+                targetAbsolute(Hardware::Eye,
+                               m_currentTarget->center.x,
+                               m_currentTarget->center.y);
+            }
+
+            if (m_parameterManager->value("aimTargets").toBool())
+            {
+                targetAbsolute(Hardware::Body,
+                               m_currentTarget->center.x,
+                               m_currentTarget->center.y);
+            }
         }
 
 
@@ -464,6 +478,22 @@ void Controller::onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int 
 {
     m_currentPantiltPosition[pantilt].x = x;
     m_currentPantiltPosition[pantilt].y = y;
+
+    if (m_currentTarget
+            && pantilt == Hardware::Body
+            && m_parameterManager->value("shootTargets").toBool())
+    {
+        double distance = cv::norm(m_currentPantiltPosition[pantilt] - m_currentTarget->center);
+
+        if (distance < m_parameterManager->value("shootTolerance").toInt())
+        {
+            m_hardware->startFiring(Hardware::RightGun);
+        }
+        else
+        {
+            m_hardware->stopFiring(Hardware::RightGun);
+        }
+    }
 }
 
 int Controller::numCaptureDevices()

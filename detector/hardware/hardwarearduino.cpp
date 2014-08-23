@@ -60,7 +60,7 @@ bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return false;
 }
 
-bool HardwareArduino::enableFiring(Gun gun)
+bool HardwareArduino::startFiring(Gun gun)
 {
     Q_UNUSED(gun);
     return false;

@@ -13,6 +13,11 @@ ParameterMap &ParameterManager::parameters()
     return m_parameters;
 }
 
+QVariant ParameterManager::value(const QString &key) const
+{
+    return m_parameters.value(key).m_value;
+}
+
 /// This must be called externally, because C++ sucks dicks and can't
 /// implement correct inherited method overriding in the constructor
 void ParameterManager::init()

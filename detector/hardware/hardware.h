@@ -41,7 +41,7 @@ public:
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
-    virtual bool enableFiring(Gun gun) =0;
+    virtual bool startFiring(Gun gun) =0;
     virtual bool stopFiring(Gun gun) =0;
 
 protected:

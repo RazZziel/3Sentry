@@ -18,6 +18,7 @@ public:
     explicit ParameterManager(ParameterOwner *parameterOwner, QObject *parent = 0);
 
     ParameterMap &parameters();
+    QVariant value(const QString &key) const;
     void setParameter(const QString &name, const QVariant &value);
     void saveParameter(const QString &name, const QVariant &value);
 

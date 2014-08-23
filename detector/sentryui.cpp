@@ -197,15 +197,15 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
                 switch (keyEvent->key())
                 {
                 case Qt::Key_1:
-                    m_controller->enableFiring(Hardware::EyeLaser);
+                    m_controller->startFiring(Hardware::EyeLaser);
                     break;
 
                 case Qt::Key_2:
-                    m_controller->enableFiring(Hardware::LeftGun);
+                    m_controller->startFiring(Hardware::LeftGun);
                     break;
 
                 case Qt::Key_3:
-                    m_controller->enableFiring(Hardware::RightGun);
+                    m_controller->startFiring(Hardware::RightGun);
                     break;
                 }
             }
