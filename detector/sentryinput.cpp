@@ -11,7 +11,11 @@
 
 SentryInput::SentryInput(Controller *controller) :
     QThread(controller),
-    m_controller(controller)
+    m_controller(controller),
+    m_axis_0(0),
+    m_axis_1(0),
+    m_axis_2(0),
+    m_axis_3(0)
 {
     // Resources:
     //   https://code.google.com/p/joypick/
@@ -76,31 +80,37 @@ void SentryInput::run()
                     qDebug() << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
                     switch(event.jaxis.axis) {
                     case 0:
-                        m_controller->targetRelative(Hardware::Eye, movement, 0);
+                        m_axis_0 = movement;
                         break;
                     case 1:
-                        m_controller->targetRelative(Hardware::Eye, 0, movement);
+                        m_axis_1 = movement;
                         break;
                     case 2:
-                        m_controller->targetRelative(Hardware::Body, movement, 0);
+                        m_axis_2 = movement;
                         break;
                     case 3:
-                        m_controller->targetRelative(Hardware::Body, 0, movement);
+                        m_axis_3 = movement;
                         break;
                     }
-                    break;
                 } else {
                     switch(event.jaxis.axis) {
                     case 0:
+                        m_axis_0 = 0;
+                        break;
                     case 1:
-                        m_controller->targetRelative(Hardware::Eye, 0, 0);
+                        m_axis_1 = 0;
                         break;
                     case 2:
+                        m_axis_2 = 0;
+                        break;
                     case 3:
-                        m_controller->targetRelative(Hardware::Body, 0, 0);
+                        m_axis_3 = 0;
                         break;
                     }
                 }
+                m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
+                m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+                break;
             }
         }
     }
@@ -119,6 +129,7 @@ void SentryInput::init()
     for(int i=0; i<SDL_NumJoysticks(); ++i) {
         SDL_Joystick* j = SDL_JoystickOpen(i);
         qDebug() << "    " << SDL_JoystickName(j);
+        SDL_JoystickClose(j);
     }
 
     m_max_joy = MAX_JOY;

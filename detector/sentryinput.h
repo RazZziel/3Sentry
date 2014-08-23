@@ -21,6 +21,10 @@ private:
     Controller *m_controller;
 
     int m_max_joy;
+    qreal m_axis_0;
+    qreal m_axis_1;
+    qreal m_axis_2;
+    qreal m_axis_3;
 
     char m_left_fire_button;
     char m_right_fire_button;
