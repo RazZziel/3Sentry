@@ -67,7 +67,7 @@ void SentryInput::run()
                 }
                 break;
 
-            case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+            case SDL_JOYAXISMOTION:
                 if ( ( event.jaxis.value < -MIN_JOY ) || (event.jaxis.value > MIN_JOY ) )
                 {
                     if(event.jaxis.value > m_max_joy) {
@@ -129,7 +129,6 @@ void SentryInput::init()
     for(int i=0; i<SDL_NumJoysticks(); ++i) {
         SDL_Joystick* j = SDL_JoystickOpen(i);
         qDebug() << "    " << SDL_JoystickName(j);
-        SDL_JoystickClose(j);
     }
 
     m_max_joy = MAX_JOY;

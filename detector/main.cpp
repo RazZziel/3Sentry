@@ -22,7 +22,6 @@ int main(int argc, char** argv)
 
     SentryInput input(&controller);
     input.start();
-    Q_UNUSED(input);
 
 #if 1
     SentryUI ui(&controller);
