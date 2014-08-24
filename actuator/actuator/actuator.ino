@@ -1,43 +1,48 @@
 #include <Servo.h>
+#include "PanTilt.h"
+
+#define LASER_PIN 6
 
 #define BUF_SIZE 8
-
-#define MAX_TILT 115
-#define MIN_TILT 45
-
-#define MIN_PAN 10
-#define MAX_PAN 180
-
-
 
 char buf[BUF_SIZE];
 char bufLen = 0;
 
-int  pan1 = 90;
-int tilt1 = 90;
+PanTilt* panTilts[1];
+int nPanTilts = 1;
 
 Servo servoPan, servoTilt;
 
+void serialWrite(char bytes[]);
 void ack();
 void nack();
 void processCommand();
-void moveRelative(unsigned char panTiltId, unsigned char dX, unsigned char dY);
+void accelerate(unsigned char panTiltId, unsigned char dX, unsigned char dY);
+void moveTo(unsigned char panTiltId, char X, char Y);
 void limits(unsigned char panTiltId);
 void getPosition(unsigned char panTiltId);
+void fire(unsigned char gunId);
+void stopFiring(unsigned char gunId);
 
 void setup()
 {
-	Serial.begin(19200);
-	Serial1.begin(19200);
-	
-	servoPan.attach(2);
-        servoTilt.attach(3);
+  Serial.begin(19200);
+  Serial1.begin(19200);
+
+  PanTilt *pt = new PanTilt(2,3);
+  panTilts[0] = pt;
+  
+  pinMode(LASER_PIN, OUTPUT);
+  digitalWrite(LASER_PIN, LOW);
 }
 
 void loop()
 {
-        servoPan.write(pan1);
-        servoTilt.write(tilt1);
+  int i;
+  for (i=0; i<nPanTilts; ++i)
+  {
+    panTilts[i]->update();
+  }
 }
 
 void serialEvent1()
@@ -63,6 +68,7 @@ void serialEvent1()
 		if (myByte == 0x03)
                 {
 			processCommand();
+                        break;
 			bufLen = 0;
 		}
 		
@@ -92,12 +98,16 @@ void processCommand()
 			break;
 		case 'A':
 			Serial.println("Absolute");
+                        if (bufLen >= 6)
+                        {
+                          moveTo(buf[2], buf[3], buf[4]);
+                        }
 			break;
 		case 'M':
                         Serial.println("Relative");
                         if (bufLen >= 6)
                         {
-			  moveRelative(buf[2], buf[3], buf[4]);
+			  accelerate(buf[2], buf[3], buf[4]);
                         }
                         else
                         {
@@ -113,14 +123,24 @@ void processCommand()
                         }
                         else
                         {
+                          Serial.println("Invalid number of parameters");
                           nack();
                         }
 			break;
 		case 'S':
 			Serial.println("Pew");
+                        if (bufLen >= 3)
+                        {
+                          Serial.println("Pew Pew");
+                          fire(buf[1]);
+                        }
 			break;
 		case 'H':
 			Serial.println("No pew");
+                        if (bufLen >= 3)
+                        {
+                          stopFiring(buf[1]);
+                        }
 			break;
 		default:
 			Serial.print("Unknown command: ");
@@ -130,60 +150,32 @@ void processCommand()
 	}
 }
 
-void moveRelative(unsigned char panTiltId, unsigned char dX, unsigned char dY)
+void accelerate(unsigned char panTiltId, char dX, char dY)
 {
-  int maxSpeed = 40;
-  if (panTiltId == 0)
+  if (panTiltId < nPanTilts)
   {
-    Serial.print("Input: ");
-    Serial.print(dX);
-    Serial.print(" ");
-    Serial.println(dY);
-    int realX = dX - 128;
-    int realY = dY - 128;
-    
-    Serial.print("Centered: ");
-    Serial.print(realX);
-    Serial.print(" ");
-    Serial.println(realY);
-    
-    realX = (realX * maxSpeed) / 128;   
-    realY = (realY * maxSpeed) / 128;
-    pan1 += realX;
-    tilt1 += realY;
-    
-    if (pan1 > MAX_PAN)
-      pan1 = MAX_PAN;
-    else if (pan1 < MIN_PAN)
-      pan1 = MIN_PAN;
-    
-    if (tilt1 > MAX_TILT)
-      tilt1 = MAX_TILT;
-    else if (tilt1 < MIN_TILT)
-      tilt1 = MIN_TILT;
-      
-    Serial.print("Moveiendo pantilt: ");
-    Serial.print(pan1);
-    Serial.print(", ");
-    Serial.println(tilt1);
-    ack();
+    if (!panTilts[panTiltId]->accelerate(dX, dY))
+    {
+      //ack();
+      return;
+    }
   }
-  else
+  nack();
+}
+
+void moveTo(unsigned char panTiltId, char X, char Y)
+{
+  if (panTiltId < nPanTilts)
   {
-    nack();
+    panTilts[panTiltId]->moveTo(X, Y);
   }
 }
 
 void limits(unsigned char panTiltId)
 {
-  if (panTiltId == 0)
+  if (panTiltId < nPanTilts)
   {
-    Serial1.write(0x02);
-    Serial1.write(MIN_PAN);
-    Serial1.write(MAX_PAN);
-    Serial1.write(MIN_TILT);
-    Serial1.write(MAX_TILT);
-    Serial1.write(0x03);
+    serialWrite(panTilts[panTiltId]->limits());
   }
   else
   {
@@ -192,14 +184,9 @@ void limits(unsigned char panTiltId)
 }
 void getPosition(unsigned char panTiltId)
 {
-  if (panTiltId == 0)
+  if (panTiltId < nPanTilts)
   {
-    Serial1.write(0x02);
-    Serial1.write(MIN_PAN);
-    Serial1.write(MAX_PAN);
-    Serial1.write(MIN_TILT);
-    Serial1.write(MAX_TILT);
-    Serial1.write(0x03);
+    serialWrite(panTilts[panTiltId]->currentPosition());
   }
   else
   {
@@ -207,16 +194,39 @@ void getPosition(unsigned char panTiltId)
   }
 }
 
+void fire(unsigned char gunId)
+{
+    digitalWrite(LASER_PIN, HIGH);
+}
+
+void stopFiring(unsigned char gunId)
+{
+    digitalWrite(LASER_PIN, LOW);
+}
+
 void ack()
 {
-  Serial1.write(0x02);
-  Serial1.write(0x06);
-  Serial1.write(0x03);
+  char bytes[] = {0x06, 0x00};
+  //serialWrite(bytes);
 }
 
 void nack()
 {
+  char bytes[] = { 0x15, 0x00};
+  //serialWrite(bytes);
+}
+
+void serialWrite(char bytes[])
+{
+  unsigned char idx = 0;
+  unsigned char thisByte = bytes[idx++];
   Serial1.write(0x02);
-  Serial1.write(0x15);
+  while (thisByte != 0)
+  {
+    Serial1.write(thisByte);
+    thisByte = bytes[idx++];
+  }
   Serial1.write(0x03);
+  
+  
 }
