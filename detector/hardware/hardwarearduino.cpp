@@ -1,5 +1,6 @@
 #include "hardwarearduino.h"
 #include <QtSerialPort/QtSerialPort>
+#include <QCoreApplication>
 
 HardwareArduino::HardwareArduino(QObject *parent) :
     Hardware(parent),
@@ -7,6 +8,17 @@ HardwareArduino::HardwareArduino(QObject *parent) :
 {
     connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
     onParametersChanged();
+
+    connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
+    m_positionUpdateTimer.setInterval(32);
+
+    connect(&m_positionQueryTimer, SIGNAL(timeout()), SLOT(updateCurrentPosition()));
+    m_positionQueryTimer.setInterval(10*1000);
+
+    m_pantiltSpeed[Eye] = QPointF(0, 0);
+    m_pantiltSpeed[Body] = QPointF(0, 0);
+    m_pantiltAcc[Eye] = QPointF(-30, 30);
+    m_pantiltAcc[Body] = QPointF(-30, 30);
 }
 
 HardwareArduino::~HardwareArduino()
@@ -21,6 +33,15 @@ ParameterList HardwareArduino::createParameters() const
     return list;
 }
 
+void qSleep(float seconds)
+{
+    // Sucks to be me
+    QDateTime sleepTime = QDateTime::currentDateTime().addMSecs(lround(seconds*1000));
+    while (QDateTime::currentDateTime() < sleepTime)
+    {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+}
 void HardwareArduino::onParametersChanged()
 {
     QString newPortName = m_parameterManager->value("portName").toString();
@@ -39,15 +60,83 @@ void HardwareArduino::onParametersChanged()
         {
             qWarning() << "Could not open serial port:" << m_serialPort->errorString();
         }
+        else
+        {
+            int minX, maxX, minY, maxY;
+            getLimits(Body, minX, maxX, minY, maxY);
+            getLimits(Eye, minX, maxX, minY, maxY);
+            updateCurrentPosition();
+        }
+    }
+
+    /*if (m_parameterManager->value("monitorPosition").toBool())
+    {
+        m_positionQueryTimer.start();
+    }
+    else
+    {
+        m_positionQueryTimer.stop();
+    }*/
+    m_positionQueryTimer.start();
+    m_positionUpdateTimer.start();
+}
+
+void HardwareArduino::updateCurrentPosition()
+{
+    for (int i=Body; i<=Eye; i++)
+    {
+        Pantilt pantilt = (Pantilt) i;
+
+        uint x=0;
+        uint y=0;
+        if (currentPosition(pantilt, x, y))
+        {
+            m_currentHwPosition[pantilt].rx() = x;
+            m_currentHwPosition[pantilt].ry() = y;
+
+            QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt].toPoint());
+            emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
+        }
+    }
+}
+
+void HardwareArduino::sendCurrentPosition()
+{
+    for (int i=Body; i<=Eye; i++)
+    {
+        Pantilt pantilt = (Pantilt) i;
+
+        qreal dx = qPow(m_pantiltSpeed[pantilt].x(), 3)*m_pantiltAcc[pantilt].x();
+        qreal dy = qPow(m_pantiltSpeed[pantilt].y(), 3)*m_pantiltAcc[pantilt].y();
+
+        QPointF newPosition = m_currentHwPosition[pantilt] + QPointF(dx, dy);
+
+        newPosition.rx() = qMax(m_minHwPosition[pantilt].x(), newPosition.x());
+        newPosition.rx() = qMin(m_maxHwPosition[pantilt].x(), newPosition.x());
+        newPosition.ry() = qMax(m_minHwPosition[pantilt].y(), newPosition.y());
+        newPosition.ry() = qMin(m_maxHwPosition[pantilt].y(), newPosition.y());
+
+        if (newPosition.toPoint() != m_currentHwPosition[pantilt].toPoint())
+        {
+            m_currentHwPosition[pantilt] = newPosition;
+            targetAbsolute(pantilt,
+                           m_currentHwPosition[pantilt].x(),
+                           m_currentHwPosition[pantilt].y(), false);
+        }
     }
 }
 
 bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
     QByteArray payload("L");
-    payload.append((uchar) pantilt);
+    payload.append((quint8) pantilt);
+    if (!sendCommand(payload))
+    {
+        return false;
+    }
+
     QByteArray reply;
-    if (!sendCommand(payload, &reply))
+    if (!readReply(&reply))
     {
         return false;
     }
@@ -65,15 +154,23 @@ bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY
 
     qDebug() << "Limits:" << minX << maxX << minY << maxY;
 
-    return false;
+    m_minHwPosition[pantilt] = QPoint(minX, minY);
+    m_maxHwPosition[pantilt] = QPoint(maxX, maxY);
+
+    return true;
 }
 
 bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
     QByteArray payload("P");
-    payload.append((uchar) pantilt);
+    payload.append((quint8) pantilt);
+    if (!sendCommand(payload))
+    {
+        return false;
+    }
+
     QByteArray reply;
-    if (!sendCommand(payload, &reply))
+    if (!readReply(&reply))
     {
         return false;
     }
@@ -103,44 +200,43 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
         y = hwPosition.y();
     }
 
+    emit currentPositionChanged(pantilt, x, y);
+
     QByteArray payload("A");
     payload.append((quint8) pantilt);
     payload.append((quint8) x);
-    payload.append((quint8) x);
+    payload.append((quint8) y);
     return sendCommand(payload);
 }
 
 bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
-    QByteArray payload("M");
-    payload.append((quint8) pantilt);
-    payload.append((quint8) qRound((dx * 127)+127));
-    payload.append((quint8) qRound((dy * 127)+127));
-    return sendCommand(payload);
+    m_pantiltSpeed[pantilt] = QPointF(dx, dy);
+    return true;
 }
 
-bool HardwareArduino::startFiring(Gun gun)
+bool HardwareArduino::startFiring(Trigger trigger)
 {
     QByteArray payload("S");
-    payload.append((quint8) gun);
+    payload.append((quint8) trigger);
     return sendCommand(payload);
 }
 
-bool HardwareArduino::stopFiring(Gun gun)
+bool HardwareArduino::stopFiring(Trigger trigger)
 {
     QByteArray payload("H");
-    payload.append((quint8) gun);
+    payload.append((quint8) trigger);
     return sendCommand(payload);
 }
 
-bool HardwareArduino::sendCommand(const QByteArray &payload, QByteArray *ret_reply) const
+bool HardwareArduino::sendCommand(const QByteArray &payload) const
 {
     QMutexLocker ml(&m_commandMutex);
 
     QByteArray data;
-    data.append((uchar) 0x02);
+    data.append((quint8) 0x02);
     data.append(payload);
-    data.append((uchar) 0x03);
+    data.append((quint8) 0x03);
 
     qDebug() << "<<" << payload[0] << data.toHex();
 
@@ -152,6 +248,11 @@ bool HardwareArduino::sendCommand(const QByteArray &payload, QByteArray *ret_rep
         return false;
     }
 
+    return true;
+}
+
+bool HardwareArduino::readReply(QByteArray *ret_reply) const
+{
     QByteArray reply;
     while (true)
     {

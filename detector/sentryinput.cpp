@@ -1,29 +1,25 @@
 #include "sentryinput.h"
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 #include "controller.h"
 
 #include <QDebug>
 
-#define MIN_JOY 3200
-#define MAX_JOY 32000
+#define MIN_JOY 5
+#define MAX_JOY 1500
 
 SentryInput::SentryInput(Controller *controller) :
     QThread(controller),
     m_controller(controller),
-    m_axis_0(0),
-    m_axis_1(0),
-    m_axis_2(0),
-    m_axis_3(0),
-    m_parameterManager(new ParameterManager(this, this))
+    m_parameterManager(new ParameterManager(this, this)),
+    m_axis_body_x(0),
+    m_axis_body_y(0),
+    m_axis_laser_x(0),
+    m_axis_laser_y(0)
 {
     // Resources:
     //   https://code.google.com/p/joypick/
-
-    m_left_fire_button = 6;
-    m_right_fire_button = 7;
-    m_laser_button = 1;
 
     init();
 }
@@ -51,6 +47,14 @@ void SentryInput::run()
                 {
                     m_controller->startFiring(Hardware::EyeLaser);
                 }
+                else if(event.jbutton.button == 10)
+                {
+                    m_controller->hardware()->targetAbsolute(Hardware::Body, 90, 90, false);
+                }
+                else if(event.jbutton.button == 11)
+                {
+                    m_controller->hardware()->targetAbsolute(Hardware::Eye, 90, 90, false);
+                }
                 break;
 
             case SDL_JOYBUTTONUP:
@@ -70,55 +74,46 @@ void SentryInput::run()
                 break;
 
             case SDL_JOYAXISMOTION:
+            {
+                qreal movement = 0;
                 if ( ( event.jaxis.value < -MIN_JOY ) || (event.jaxis.value > MIN_JOY ) )
                 {
-                    if(event.jaxis.value > m_max_joy) {
-                        m_max_joy = event.jaxis.value;
-                    } else if (-event.jaxis.value > m_max_joy) {
-                        m_max_joy = -event.jaxis.value;
+                    if(qAbs(event.jaxis.value) > m_max_joy)
+                    {
+                        m_max_joy = qAbs(event.jaxis.value);
                     }
 
-                    qreal movement = (qreal)event.jaxis.value / (qreal)m_max_joy;
-                    qDebug() << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
-                    switch(event.jaxis.axis) {
-                    case 0:
-                        m_axis_0 = movement;
-                        break;
-                    case 1:
-                        m_axis_1 = movement;
-                        break;
-                    case 2:
-                        m_axis_2 = movement;
-                        break;
-                    case 3:
-                        m_axis_3 = movement;
-                        break;
-                    }
-                } else {
-                    switch(event.jaxis.axis) {
-                    case 0:
-                        m_axis_0 = 0;
-                        break;
-                    case 1:
-                        m_axis_1 = 0;
-                        break;
-                    case 2:
-                        m_axis_2 = 0;
-                        break;
-                    case 3:
-                        m_axis_3 = 0;
-                        break;
-                    }
+                    movement = (qreal)event.jaxis.value / (qreal)m_max_joy;
                 }
+
+                if (event.jaxis.axis == m_body_x_axis)
+                {
+                    m_axis_body_x = movement;
+                }
+                else if (event.jaxis.axis == m_body_y_axis)
+                {
+                    m_axis_body_y = movement;
+                }
+                else if (event.jaxis.axis == m_laser_x_axis)
+                {
+                    m_axis_laser_x = movement;
+                }
+                else if (event.jaxis.axis == m_laser_y_axis)
+                {
+                    m_axis_laser_y = movement;
+                }
+
+                qDebug() << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
 
                 if (event.jaxis.axis == 0 || event.jaxis.axis == 1)
                 {
-                    m_controller->targetRelative(Hardware::Eye, m_axis_0, m_axis_1);
+                    m_controller->targetRelative(Hardware::Body, m_axis_body_x, m_axis_body_y);
                 }
                 else
                 {
-                    m_controller->targetRelative(Hardware::Body, m_axis_2, m_axis_3);
+                    m_controller->targetRelative(Hardware::Eye, m_axis_laser_x, m_axis_laser_y);
                 }
+            }
                 break;
             }
         }
@@ -135,9 +130,54 @@ void SentryInput::init()
 
     qDebug() << SDL_NumJoysticks() << "controllers were found";
 
-    for(int i=0; i<SDL_NumJoysticks(); ++i) {
+    for (int i=0; i<SDL_NumJoysticks(); ++i)
+    {
         SDL_Joystick* j = SDL_JoystickOpen(i);
-        qDebug() << "    " << SDL_JoystickName(j);
+        char guid[255];
+        SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(j), guid, 255);
+        qDebug() << "   [" << guid << "]" << SDL_JoystickName(j);
+
+        if (!strcmp(guid, "030000004c050000c405000011010000"))
+        {
+            // Sony Computer Entertainment Wireless Controller
+
+            m_left_fire_button = 6;
+            m_right_fire_button = 7;
+            m_laser_button = 1;
+
+            m_body_x_axis = 0;
+            m_body_y_axis = 1;
+            m_laser_x_axis = 2;
+            m_laser_y_axis = 5;
+        }
+        else if (!strcmp(guid, "030000005e0400008e02000014010000"))
+        {
+            // Microsoft X-Box 360 pad
+
+            m_left_fire_button = 6;
+            m_right_fire_button = 4;
+            m_laser_button = 5;
+
+            m_body_x_axis = 0;
+            m_body_y_axis = 1;
+            m_laser_x_axis = 3;
+            m_laser_y_axis = 4;
+        }
+        else // if (!strcnp(guid, "030000006d04000018c2000010010000"))
+        {
+            // Logitech Logitech RumblePad 2 USB
+
+            m_left_fire_button = 6;
+            m_right_fire_button = 7;
+            m_laser_button = 1;
+
+            m_body_x_axis = 0;
+            m_body_y_axis = 1;
+            m_laser_x_axis = 2;
+            m_laser_y_axis = 3;
+        }
+
+        break; // TODO: Support multiple joysticks
     }
 
     m_max_joy = MAX_JOY;
@@ -169,7 +209,7 @@ ParameterList SentryInput::createParameters() const
 
 void SentryInput::onParametersChanged()
 {
-
+    // TODO: Update parameters
 }
 
 

@@ -160,7 +160,8 @@ void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout
 
 bool SentryUI::eventFilter(QObject *object, QEvent *event)
 {
-    Q_UNUSED(object);
+    if (object != this)
+        return false;
 
     if (event->type() == QEvent::KeyPress ||
             event->type() == QEvent::KeyRelease)

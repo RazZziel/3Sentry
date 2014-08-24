@@ -18,7 +18,7 @@ public:
         Eye = 1
     };
 
-    enum Gun {
+    enum Trigger {
         EyeLaser = 0,
         RightGun = 1,
         LeftGun = 2
@@ -41,8 +41,8 @@ public:
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
-    virtual bool startFiring(Gun gun) =0;
-    virtual bool stopFiring(Gun gun) =0;
+    virtual bool startFiring(Trigger trigger) =0;
+    virtual bool stopFiring(Trigger trigger) =0;
 
 protected:
     QPoint screen2hardware(Pantilt pantilt, QPoint xyOnScreen) const;

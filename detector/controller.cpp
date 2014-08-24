@@ -239,6 +239,7 @@ bool Controller::startCalibration()
     {
         Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
 
+#if 0
         int minX, maxX, minY, maxY;
         if (!m_hardware->getLimits(pantilt, minX, maxX, minY, maxY))
         {
@@ -249,6 +250,12 @@ bool Controller::startCalibration()
         m_calibrationHwPoints[pantilt] << QPoint(minX, minY)
                                        << QPoint(minX, maxY)
                                        << QPoint(maxX, maxY);
+#else
+        m_calibrationData[pantilt].clear();
+        m_calibrationHwPoints[pantilt] << QPoint(90, 90)
+                                       << QPoint(90-10, 90)
+                                       << QPoint(90-10, 90+10);
+#endif
 
         QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
         qDebug() << "Pantilt" << pantilt << "First calibration point:" << newHardwarePoint;
@@ -323,14 +330,14 @@ bool Controller::targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy)
     return m_hardware->targetRelative(pantilt, dx, dy);
 }
 
-bool Controller::startFiring(Hardware::Gun gun)
+bool Controller::startFiring(Hardware::Trigger trigger)
 {
-    return m_hardware->startFiring(gun);
+    return m_hardware->startFiring(trigger);
 }
 
-bool Controller::stopFiring(Hardware::Gun gun)
+bool Controller::stopFiring(Hardware::Trigger trigger)
 {
-    return m_hardware->stopFiring(gun);
+    return m_hardware->stopFiring(trigger);
 }
 
 
@@ -346,7 +353,8 @@ void Controller::process()
     if (!m_captureDevice->read(m_currentFrame))
     {
         qWarning() << "Could not capture frame";
-        return;
+
+        m_currentFrame = cv::Mat::zeros(480, 640, CV_8UC3);
     }
 
     if (m_calibrating)

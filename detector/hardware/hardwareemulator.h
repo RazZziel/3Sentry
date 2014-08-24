@@ -15,14 +15,14 @@ public:
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
-    bool startFiring(Gun gun);
-    bool stopFiring(Gun gun);
+    bool startFiring(Trigger trigger);
+    bool stopFiring(Trigger trigger);
 
 private:
     QMap<Pantilt,QPoint> m_currentHwTarget;
     QMap<Pantilt,QPointF> m_currentHwPosition;
     QMap<Pantilt,qreal> m_pantiltSpeed;
-    QMap<Gun,bool> m_firing;
+    QMap<Trigger,bool> m_firing;
 
     QTimer m_timer;
 

@@ -45,8 +45,8 @@ public slots:
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
     bool targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy);
-    bool startFiring(Hardware::Gun gun);
-    bool stopFiring(Hardware::Gun gun);
+    bool startFiring(Hardware::Trigger trigger);
+    bool stopFiring(Hardware::Trigger trigger);
 
 private:
     struct TrackingObject {
@@ -74,6 +74,7 @@ private:
 
     ParameterManager *m_parameterManager;
     QTimer m_processTimer;
+    QTimer m_targetMissTimeout;
 
     QList<Detector*> m_detectors;
     Hardware *m_hardware;

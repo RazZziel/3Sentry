@@ -104,9 +104,9 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return true;
 }
 
-bool HardwareThunder::startFiring(Gun gun)
+bool HardwareThunder::startFiring(Trigger trigger)
 {
-    switch (gun)
+    switch (trigger)
     {
     case EyeLaser:
         movement_handler(3, 1);
@@ -120,9 +120,9 @@ bool HardwareThunder::startFiring(Gun gun)
     return true;
 }
 
-bool HardwareThunder::stopFiring(Gun gun)
+bool HardwareThunder::stopFiring(Trigger trigger)
 {
-    switch (gun)
+    switch (trigger)
     {
     case EyeLaser:
         movement_handler(3, 0);
