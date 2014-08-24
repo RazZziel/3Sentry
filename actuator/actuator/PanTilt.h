@@ -100,16 +100,22 @@ public:
       */
         return 0;
     }
-    char* limits()
+    unsigned char limits( char *buf )
     {
-        char bytes[5] = { m_minPan, m_maxPan, m_minTilt, m_maxTilt, 0x00 };
-        return bytes;
+        buf[0] = m_minPan;
+        buf[1] = m_maxPan;
+        buf[2] = m_minTilt;
+        buf[3] = m_maxTilt;
+        
+        return 4;
     }
     
-    char* currentPosition()
+    unsigned char currentPosition(char *buf)
     {
-        char bytes[3] = { m_pan, m_tilt, 0x00 };
-        return bytes;
+        buf[0] = m_pan;
+        buf[1] = m_tilt;
+
+        return 2;
     }
     
     void setMinPan(int minPan)

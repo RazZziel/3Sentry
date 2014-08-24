@@ -2,7 +2,7 @@
 #include <Servo.h>
 #include "PanTilt.h"
 
-#define __DEBUG__ 1
+#define __DEBUG__ 0
 
 #define LASER_PIN 6
 #define LASER_PIN_2 7
@@ -42,10 +42,10 @@ void setup()
     panTilts[0] = pt;
 
     pt = new PanTilt(8,9);
-    pt->setMinPan(0);
+    pt->setMinPan(0x01);
     pt->setMaxPan(0xb3);
-    pt->setMinTilt(0);
-    pt->setMaxTilt(255);
+    pt->setMinTilt(0x01);
+    pt->setMaxTilt(0xff);
     panTilts[1] = pt;
     nPanTilts = 2;
 
@@ -71,8 +71,10 @@ void serialEvent1()
     {
         unsigned char myByte = Serial1.read();
 
+        #if __DEBUG___ > 2
         Serial.print("Received: ");
         Serial.println(myByte, HEX);
+        #endif
 
 
         /* If we receive the begining of a new command
@@ -107,25 +109,27 @@ void processCommand()
         switch (buf[1])
         {
         case 'L':
+            #if __DEBUG__ > 0
             Serial.println("Limits");
+            #endif
             if  (bufLen >= 3)
             {
                 limits(buf[2]);
             }
-            else
-            {
-                nack();
-            }
             break;
         case 'A':
+            #if __DEBUG__ > 0
             Serial.println("Absolute");
+            #endif
             if (bufLen >= 6)
             {
                 moveTo(buf[2], buf[3], buf[4]);
             }
             break;
         case 'M':
+            #if __DEBUG__ > 0
             Serial.println("Relative");
+            #endif
             if (bufLen >= 6)
             {
                 accelerate(buf[2], buf[3], buf[4]);
@@ -133,11 +137,12 @@ void processCommand()
             else
             {
                 Serial.println("Invalid message length");
-                nack();
             }
             break;
         case 'P':
+            #if __DEBUG__ > 0
             Serial.println("Position");
+            #endif
             if (bufLen >= 3)
             {
                 getPosition(buf[2]);
@@ -145,18 +150,21 @@ void processCommand()
             else
             {
                 Serial.println("Invalid number of parameters");
-                nack();
             }
             break;
         case 'S':
+            #if __DEBUG__ > 0
             Serial.println("Pew");
+            #endif
             if (bufLen >= 3)
             {
                 fire(buf[2]);
             }
             break;
         case 'H':
+            #if __DEBUG__ > 0
             Serial.println("No pew");
+            #endif
             if (bufLen >= 3)
             {
                 stopFiring(buf[2]);
@@ -174,20 +182,8 @@ void accelerate(unsigned char panTiltId, char dX, char dY)
 {
     if (panTiltId < nPanTilts)
     {
-        /*
-    Serial.print("Accelerate: ");
-    Serial.print(panTiltId);
-    Serial.print(", ");
-    Serial.print(dX);
-    Serial.print(", ");
-    Serial.println(dY);*/
-        if (!panTilts[panTiltId]->accelerate(dX, dY))
-        {
-            //ack();
-            return;
-        }
+        panTilts[panTiltId]->accelerate(dX, dY);
     }
-    nack();
 }
 
 void moveTo(unsigned char panTiltId, char X, char Y)
@@ -202,22 +198,16 @@ void limits(unsigned char panTiltId)
 {
     if (panTiltId < nPanTilts)
     {
-        serialWrite(panTilts[panTiltId]->limits());
-    }
-    else
-    {
-        nack();
+      char buf[4];
+      serialWrite(buf, panTilts[panTiltId]->limits(buf));
     }
 }
 void getPosition(unsigned char panTiltId)
 {
     if (panTiltId < nPanTilts)
     {
-        serialWrite(panTilts[panTiltId]->currentPosition());
-    }
-    else
-    {
-        nack();
+        char[2] buf;
+        serialWrite(buf, panTilts[panTiltId]->currentPosition(buf));
     }
 }
 
@@ -245,27 +235,12 @@ void stopFiring(unsigned char gunId)
     }
 }
 
-void ack()
+void serialWrite(char bytes[], unsigned char len)
 {
-    char bytes[] = {0x06, 0x00 };
-    //serialWrite(bytes);
-}
-
-void nack()
-{
-    char bytes[] = { 0x15, 0x00 };
-    //serialWrite(bytes);
-}
-
-void serialWrite(char bytes[])
-{
-    unsigned char idx = 0;
-    unsigned char thisByte = bytes[idx++];
     Serial1.write(0x02);
-    while (thisByte != 0)
+    for (int i=0; i < len; ++i)
     {
-        Serial1.write(thisByte);
-        thisByte = bytes[idx++];
+        Serial1.write(bytes[i]);
     }
     Serial1.write(0x03);
 
