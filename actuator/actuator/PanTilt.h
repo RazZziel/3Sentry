@@ -27,9 +27,9 @@ class PanTilt
     PanTilt(int panPin, int tiltPin)
     {
       m_lastUpdate = micros();
-      m_pan = 90;
+      m_pan = 100;
       m_panSpeed = 0;
-      m_tilt = 90;
+      m_tilt = 100;
       m_tiltSpeed = 0;
       
       
@@ -104,7 +104,7 @@ class PanTilt
     
     char* currentPosition()
     {
-      char bytes[3] = { m_pan, m_tilt, 0x00 };
+      char bytes[3] = { -m_pan, m_tilt, 0x00 };
       return bytes;
     }
 };

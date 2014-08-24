@@ -2,6 +2,7 @@
 #include "PanTilt.h"
 
 #define LASER_PIN 6
+#define LASER_PIN_2 7
 
 #define BUF_SIZE 8
 
@@ -9,7 +10,7 @@ char buf[BUF_SIZE];
 char bufLen = 0;
 
 PanTilt* panTilts[1];
-int nPanTilts = 1;
+int nPanTilts = 0;
 
 Servo servoPan, servoTilt;
 
@@ -29,11 +30,15 @@ void setup()
   Serial.begin(19200);
   Serial1.begin(19200);
 
-  PanTilt *pt = new PanTilt(2,3);
-  panTilts[0] = pt;
+  panTilts[0] = new PanTilt(2,3);
+  panTilts[1] = new PanTilt(4,5);
+  nPanTilts = 2;
   
   pinMode(LASER_PIN, OUTPUT);
   digitalWrite(LASER_PIN, LOW);
+  
+  pinMode(LASER_PIN_2, OUTPUT);
+  digitalWrite(LASER_PIN_2, LOW);
 }
 
 void loop()
@@ -132,14 +137,14 @@ void processCommand()
                         if (bufLen >= 3)
                         {
                           Serial.println("Pew Pew");
-                          fire(buf[1]);
+                          fire(buf[2]);
                         }
 			break;
 		case 'H':
 			Serial.println("No pew");
                         if (bufLen >= 3)
                         {
-                          stopFiring(buf[1]);
+                          stopFiring(buf[2]);
                         }
 			break;
 		default:
@@ -154,6 +159,12 @@ void accelerate(unsigned char panTiltId, char dX, char dY)
 {
   if (panTiltId < nPanTilts)
   {
+    Serial.print("Accelerate: ");
+    Serial.print(panTiltId);
+    Serial.print(", ");
+    Serial.print(dX);
+    Serial.print(", ");
+    Serial.println(dY);
     if (!panTilts[panTiltId]->accelerate(dX, dY))
     {
       //ack();
@@ -196,23 +207,37 @@ void getPosition(unsigned char panTiltId)
 
 void fire(unsigned char gunId)
 {
+  if (gunId == 0)
+  {
     digitalWrite(LASER_PIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(LASER_PIN_2, HIGH);
+  }
 }
 
 void stopFiring(unsigned char gunId)
 {
+  if (gunId == 0)
+  {
     digitalWrite(LASER_PIN, LOW);
+  }
+  else
+  {
+    digitalWrite(LASER_PIN_2, LOW);
+  }
 }
 
 void ack()
 {
-  char bytes[] = {0x06, 0x00};
+  char bytes[] = {0x06, 0x00 };
   //serialWrite(bytes);
 }
 
 void nack()
 {
-  char bytes[] = { 0x15, 0x00};
+  char bytes[] = { 0x15, 0x00 };
   //serialWrite(bytes);
 }
 
