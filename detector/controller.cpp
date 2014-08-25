@@ -343,14 +343,9 @@ bool Controller::stopFiring(Hardware::Trigger trigger)
 
 void Controller::process()
 {
-    if (!m_captureDevice->isOpened())
-    {
-        return;
-    }
-
     m_processTimer.stop();
 
-    if (!m_captureDevice->read(m_currentFrame))
+    if (!m_captureDevice->isOpened() || !m_captureDevice->read(m_currentFrame))
     {
         qWarning() << "Could not capture frame";
 
