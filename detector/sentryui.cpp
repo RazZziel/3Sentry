@@ -160,8 +160,7 @@ void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout
 
 bool SentryUI::eventFilter(QObject *object, QEvent *event)
 {
-    if (object != this)
-        return false;
+    Q_UNUSED(object);
 
     if (event->type() == QEvent::KeyPress ||
             event->type() == QEvent::KeyRelease)
@@ -172,23 +171,52 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
         bool move = (keyEvent->key() == Qt::Key_Up ||
                      keyEvent->key() == Qt::Key_Down ||
                      keyEvent->key() == Qt::Key_Left ||
-                     keyEvent->key() == Qt::Key_Right);
+                     keyEvent->key() == Qt::Key_Right ||
+                     keyEvent->key() == Qt::Key_W ||
+                     keyEvent->key() == Qt::Key_A ||
+                     keyEvent->key() == Qt::Key_S ||
+                     keyEvent->key() == Qt::Key_D ||
+                     keyEvent->key() == Qt::Key_I ||
+                     keyEvent->key() == Qt::Key_J ||
+                     keyEvent->key() == Qt::Key_K ||
+                     keyEvent->key() == Qt::Key_L);
 
         if (move)
         {
+            Hardware::Pantilt pantilt;
+            const qreal speed = 0.5;
             qreal dx = 0;
             qreal dy = 0;
 
-            if (m_keyState[Qt::Key_Up])
-                dy = 1;
-            else if (m_keyState[Qt::Key_Down])
-                dy = -1;
-            else if (m_keyState[Qt::Key_Left])
-                dx = -1;
-            else if (m_keyState[Qt::Key_Right])
-                dx = 1;
+            if (m_keyState[Qt::Key_Up] || m_keyState[Qt::Key_W]
+                    || m_keyState[Qt::Key_Down] || m_keyState[Qt::Key_S]
+                    || m_keyState[Qt::Key_Left] || m_keyState[Qt::Key_A]
+                    || m_keyState[Qt::Key_Right] || m_keyState[Qt::Key_D]
+                    || m_keyState[Qt::Key_Up] || m_keyState[Qt::Key_W])
+            {
+                pantilt = Hardware::Body;
+            }
+            else if (m_keyState[Qt::Key_I]
+                     || m_keyState[Qt::Key_J]
+                     || m_keyState[Qt::Key_K]
+                     || m_keyState[Qt::Key_L])
+            {
+                pantilt = Hardware::Eye;
+            }
 
-            m_controller->targetRelative(Hardware::Body, dx, dy);
+            if (m_keyState[Qt::Key_Up] || m_keyState[Qt::Key_W] || m_keyState[Qt::Key_I])
+                dy = -speed;
+            else if (m_keyState[Qt::Key_Down] || m_keyState[Qt::Key_S] || m_keyState[Qt::Key_K])
+                dy = speed;
+            if (m_keyState[Qt::Key_Left] || m_keyState[Qt::Key_A] || m_keyState[Qt::Key_J])
+                dx = -speed;
+            else if (m_keyState[Qt::Key_Right] || m_keyState[Qt::Key_D] || m_keyState[Qt::Key_L])
+                dx = speed;
+
+            qDebug() << m_keyState[Qt::Key_Up] << dy;
+            m_controller->targetRelative(pantilt, dx, dy);
+
+            return true;
         }
         else
         {
@@ -198,15 +226,15 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
                 {
                 case Qt::Key_1:
                     m_controller->startFiring(Hardware::EyeLaser);
-                    break;
+                    return true;
 
                 case Qt::Key_2:
                     m_controller->startFiring(Hardware::LeftGun);
-                    break;
+                    return true;
 
                 case Qt::Key_3:
                     m_controller->startFiring(Hardware::RightGun);
-                    break;
+                    return true;
                 }
             }
             else
@@ -215,15 +243,15 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
                 {
                 case Qt::Key_1:
                     m_controller->stopFiring(Hardware::EyeLaser);
-                    break;
+                    return true;
 
                 case Qt::Key_2:
                     m_controller->stopFiring(Hardware::LeftGun);
-                    break;
+                    return true;
 
                 case Qt::Key_3:
                     m_controller->stopFiring(Hardware::RightGun);
-                    break;
+                    return true;
                 }
             }
         }
