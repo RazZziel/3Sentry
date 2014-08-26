@@ -129,14 +129,9 @@ void HardwareArduino::sendCurrentPosition()
 bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
     QByteArray payload("L");
-    payload.append((quint8) pantilt);
-    if (!sendCommand(payload))
-    {
-        return false;
-    }
-
     QByteArray reply;
-    if (!readReply(&reply))
+    payload.append((quint8) pantilt);
+    if (!sendCommand(payload, &reply))
     {
         return false;
     }
@@ -163,14 +158,9 @@ bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY
 bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
     QByteArray payload("P");
-    payload.append((quint8) pantilt);
-    if (!sendCommand(payload))
-    {
-        return false;
-    }
-
     QByteArray reply;
-    if (!readReply(&reply))
+    payload.append((quint8) pantilt);
+    if (!sendCommand(payload, &reply))
     {
         return false;
     }
@@ -229,9 +219,14 @@ bool HardwareArduino::stopFiring(Trigger trigger)
     return sendCommand(payload);
 }
 
-bool HardwareArduino::sendCommand(const QByteArray &payload) const
+bool HardwareArduino::sendCommand(const QByteArray &payload, QByteArray *ret_reply) const
 {
     QMutexLocker ml(&m_commandMutex);
+
+    if (ret_reply)
+    {
+        m_serialPort->clear();
+    }
 
     QByteArray data;
     data.append((quint8) 0x02);
@@ -246,6 +241,14 @@ bool HardwareArduino::sendCommand(const QByteArray &payload) const
         qWarning() << "Could not write to serial port, written" << written
                    << "instead of" << data.length();
         return false;
+    }
+
+    if (ret_reply)
+    {
+        if (!readReply(ret_reply))
+        {
+            return false;
+        }
     }
 
     return true;

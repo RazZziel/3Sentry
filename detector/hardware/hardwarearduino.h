@@ -24,7 +24,7 @@ public:
     bool stopFiring(Trigger trigger);
 
 private:
-    bool sendCommand(const QByteArray &payload) const;
+    bool sendCommand(const QByteArray &payload, QByteArray *ret_reply=NULL) const;
     bool readReply(QByteArray *ret_reply) const;
 
     QSerialPort *m_serialPort;
