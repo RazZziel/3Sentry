@@ -675,27 +675,42 @@ void Controller::drawCrosshair(cv::Mat &image,
                                cv::Scalar color,
                                int thickness)
 {
+    cv::Point realCenter;
+    realCenter.x = qMax(0, qMin(center.x, image.cols));
+    realCenter.y = qMax(0, qMin(center.y, image.rows));
+
+    if (center != realCenter)
+    {
+        cv::putText(m_currentFrame,
+                    QString("(%1,%2)").arg(center.x).arg(center.y).toStdString(),
+                    cv::Point(realCenter.x,
+                              realCenter.y + 20),
+                    cv::FONT_HERSHEY_PLAIN, 1,
+                    color,
+                    1, 8);
+    }
+
     cv::circle(image,
-               center,
+               realCenter,
                radius,
                color,
                thickness,
                CV_AA, 0);
 
     cv::line(image,
-             cv::Point(center.x-radius,
-                       center.y),
-             cv::Point(center.x+radius,
-                       center.y),
+             cv::Point(realCenter.x-radius,
+                       realCenter.y),
+             cv::Point(realCenter.x+radius,
+                       realCenter.y),
              color,
              thickness,
              CV_AA, 0);
 
     cv::line(image,
-             cv::Point(center.x,
-                       center.y-radius),
-             cv::Point(center.x,
-                       center.y+radius),
+             cv::Point(realCenter.x,
+                       realCenter.y-radius),
+             cv::Point(realCenter.x,
+                       realCenter.y+radius),
              color,
              thickness,
              CV_AA, 0);

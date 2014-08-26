@@ -8,6 +8,7 @@ Hardware::Hardware(QObject *parent) :
     m_parameterManager(new ParameterManager(this, this))
 {
     qRegisterMetaType<Pantilt>("Pantilt");
+    connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
 }
 
 void Hardware::init()
@@ -23,8 +24,8 @@ QString Hardware::settingsGroup()
 ParameterList Hardware::createParameters() const
 {
     ParameterList list;
-    list << Parameter("calibration/Eye", tr("Eye calibration matrix"), Parameter::String, "")
-         << Parameter("calibration/Body", tr("Body calibration matrix"), Parameter::String, "");
+    list << Parameter(QString("calibration/%1").arg(Eye), tr("Eye calibration matrix"), Parameter::Unknown, "")
+         << Parameter(QString("calibration/%1").arg(Body), tr("Body calibration matrix"), Parameter::Unknown, "");
     return list;
 }
 
@@ -35,7 +36,12 @@ ParameterManager *Hardware::parameterManager()
 
 void Hardware::onParametersChanged()
 {
-
+    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        m_calibrationMatrix[pantilt] = m_parameterManager->value(QString("calibration/%1").arg(pantilt)).value<QTransform>();
+        m_calibrationMatrixInverted[pantilt] = m_calibrationMatrix[pantilt].inverted();
+    }
 }
 
 bool Hardware::center(Pantilt pantilt)
@@ -124,6 +130,8 @@ bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationDa
 
     qDebug() << "Calibration matrix:" << m_calibrationMatrix[pantilt];
     qDebug() << "Inverted calibration matrix:" << m_calibrationMatrixInverted[pantilt];
+
+    m_parameterManager->setParameter(QString("calibration/%1").arg(pantilt), m_calibrationMatrix[pantilt]);
 
     return true;
 }

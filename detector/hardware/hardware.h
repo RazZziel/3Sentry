@@ -45,7 +45,7 @@ public:
     virtual bool startFiring(Trigger trigger) =0;
     virtual bool stopFiring(Trigger trigger) =0;
 
-private slots:
+protected slots:
     virtual void onParametersChanged();
 
 protected:

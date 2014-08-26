@@ -6,9 +6,6 @@ HardwareArduino::HardwareArduino(QObject *parent) :
     Hardware(parent),
     m_serialPort(new QSerialPort(this))
 {
-    connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
-    onParametersChanged();
-
     connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
     m_positionUpdateTimer.setInterval(32);
 
@@ -33,17 +30,10 @@ ParameterList HardwareArduino::createParameters() const
     return list;
 }
 
-void qSleep(float seconds)
-{
-    // Sucks to be me
-    QDateTime sleepTime = QDateTime::currentDateTime().addMSecs(lround(seconds*1000));
-    while (QDateTime::currentDateTime() < sleepTime)
-    {
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
-}
 void HardwareArduino::onParametersChanged()
 {
+    Hardware::onParametersChanged();
+
     QString newPortName = m_parameterManager->value("portName").toString();
     if (m_serialPort->portName() != newPortName)
     {
@@ -172,7 +162,9 @@ bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     x = screeenPoint.x();
     y = screeenPoint.y();
 
-    qDebug() << "Current position:" << x << y;
+    qDebug() << "Current position:"
+             << "hw=" << hardwarePoint
+             << "screen=" << screeenPoint;
 
     return true;
 }
