@@ -86,6 +86,7 @@ private:
 
     qulonglong m_trackingObjectId;
 
+    bool m_processing;
     bool m_calibrating;
     QHash<Hardware::Pantilt,QPoint> m_calibrationCurrentHwPos;
     QHash<Hardware::Pantilt,QList<QPoint> > m_calibrationHwPoints;

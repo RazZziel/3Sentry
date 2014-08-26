@@ -21,6 +21,7 @@ Controller::Controller(QObject *parent) :
     m_captureDevice(new cv::VideoCapture()),
     m_videoWriter(new cv::VideoWriter()),
     m_trackingObjectId(0),
+    m_processing(false),
     m_calibrating(false),
     m_currentTarget(NULL)
 {
@@ -69,7 +70,7 @@ Controller::Controller(QObject *parent) :
 
     m_processTimer.setInterval(50);
     connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
-
+    m_processTimer.start();
 
     m_hardware->currentPosition(Hardware::Body,
                                 (uint&) m_currentPantiltPosition[Hardware::Body].x,
@@ -161,7 +162,7 @@ bool Controller::setCaptureDevice(const QString &filename)
 
 void Controller::startProcessing()
 {
-    m_processTimer.start();
+    m_processing = true;
 
     m_hardware->startFiring(Hardware::EyeLaser);
 
@@ -170,12 +171,12 @@ void Controller::startProcessing()
 
 void Controller::stopProcessing()
 {
-    if (m_processTimer.isActive())
+    if (m_processing)
     {
         m_audio->play(Audio::Retire);
     }
 
-    m_processTimer.stop();
+    m_processing = false;
 
     m_hardware->stopFiring(Hardware::EyeLaser);
 
@@ -347,9 +348,18 @@ void Controller::process()
 
     if (!m_captureDevice->isOpened() || !m_captureDevice->read(m_currentFrame))
     {
-        qWarning() << "Could not capture frame";
-
         m_currentFrame = cv::Mat::zeros(480, 640, CV_8UC3);
+
+        std::string text = tr("(No signal)").toStdString();
+        cv::Size size = getTextSize(text,
+                                    cv::FONT_HERSHEY_PLAIN, 1, 1, 0);
+        cv::putText(m_currentFrame,
+                    text,
+                    cv::Point((m_currentFrame.cols - size.width) / 2,
+                              (m_currentFrame.rows - size.height) / 2),
+                    cv::FONT_HERSHEY_PLAIN, 1,
+                    CV_RGB(255,255,255),
+                    1, 8);
     }
 
     if (m_calibrating)
@@ -388,69 +398,77 @@ void Controller::process()
     }
     else
     {
-        QList<TrackingObject> trackingObjects;
-
-        foreach (Detector *detector, m_detectors)
+        if (m_processing)
         {
-            if (detector->isEnabled())
+            QList<TrackingObject> trackingObjects;
+
+            foreach (Detector *detector, m_detectors)
             {
-                // Image --> Detected objects
-
-                QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
-
-                foreach (const TrackingObject &object, m_trackingObjects)
+                if (detector->isEnabled())
                 {
-                    cv::rectangle(m_currentFrame,
-                                  object.rect,
-                                  m_objectColors.value(detector),
-                                  1, CV_AA, 0);
+                    // Image --> Detected objects
+
+                    QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
+
+                    foreach (const TrackingObject &object, m_trackingObjects)
+                    {
+                        cv::rectangle(m_currentFrame,
+                                      object.rect,
+                                      m_objectColors.value(detector),
+                                      1, CV_AA, 0);
+                    }
+
+                    // Detected objects --> Tracking objects
+                    // Tracking objects --> Potential targets
+
+                    trackingObjects << findTrackingObjects(detectedObjects,
+                                                           m_trackingObjects,
+                                                           detector);
+                }
+            }
+
+            m_trackingObjects = trackingObjects;
+
+
+            // Potential targets --> Current target
+
+            m_currentTarget = findCurrentTarget(m_trackingObjects);
+            if (m_currentTarget)
+            {
+                if (m_parameterManager->value("tagTargets").toBool())
+                {
+                    targetAbsolute(Hardware::Eye,
+                                   m_currentTarget->center.x,
+                                   m_currentTarget->center.y);
                 }
 
-                // Detected objects --> Tracking objects
-                // Tracking objects --> Potential targets
-
-                trackingObjects << findTrackingObjects(detectedObjects,
-                                                       m_trackingObjects,
-                                                       detector);
+                if (m_parameterManager->value("aimTargets").toBool())
+                {
+                    targetAbsolute(Hardware::Body,
+                                   m_currentTarget->center.x,
+                                   m_currentTarget->center.y);
+                }
             }
-        }
-
-        m_trackingObjects = trackingObjects;
 
 
-        // Potential targets --> Current target
+            // Draw all tracking objects
 
-        m_currentTarget = findCurrentTarget(m_trackingObjects);
-        if (m_currentTarget)
-        {
-            if (m_parameterManager->value("tagTargets").toBool())
+            qulonglong currentTargetId = 0;
+            if (m_currentTarget)
+                currentTargetId = m_currentTarget->id;
+
+            foreach (const TrackingObject &object, m_trackingObjects)
             {
-                targetAbsolute(Hardware::Eye,
-                               m_currentTarget->center.x,
-                               m_currentTarget->center.y);
-            }
-
-            if (m_parameterManager->value("aimTargets").toBool())
-            {
-                targetAbsolute(Hardware::Body,
-                               m_currentTarget->center.x,
-                               m_currentTarget->center.y);
+                drawTrackingObject(m_currentFrame,
+                                   object,
+                                   object.id == currentTargetId);
             }
         }
-
-
-        // Draw all tracking objects
-
-        qulonglong currentTargetId = 0;
-        if (m_currentTarget)
-            currentTargetId = m_currentTarget->id;
-
-        foreach (const TrackingObject &object, m_trackingObjects)
+        else
         {
-            drawTrackingObject(m_currentFrame,
-                               object,
-                               object.id == currentTargetId);
+            m_trackingObjects.clear();
         }
+
 
         // Draw hardware state
 
