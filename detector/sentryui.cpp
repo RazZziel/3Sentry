@@ -38,6 +38,10 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     {
         m_controller->setCaptureDevice(QApplication::instance()->arguments().value(1));
     }
+    else if (m_controller->numCaptureDevices() > 0)
+    {
+        m_controller->setCaptureDevice(0);
+    }
 
     foreach (Detector *detector, m_controller->detectors())
     {

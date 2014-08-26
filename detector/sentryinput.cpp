@@ -51,11 +51,11 @@ void SentryInput::run()
                 }
                 else if(event.jbutton.button == 10)
                 {
-                    m_controller->hardware()->targetAbsolute(Hardware::Body, 90, 90, false);
+                    m_controller->hardware()->center(Hardware::Body);
                 }
                 else if(event.jbutton.button == 11)
                 {
-                    m_controller->hardware()->targetAbsolute(Hardware::Eye, 90, 90, false);
+                    m_controller->hardware()->center(Hardware::Eye);
                 }
                 break;
 

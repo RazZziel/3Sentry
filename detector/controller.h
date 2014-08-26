@@ -49,6 +49,7 @@ public slots:
 
     bool targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y);
     bool targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy);
+    bool center(Hardware::Pantilt pantilt);
     bool startFiring(Hardware::Trigger trigger);
     bool stopFiring(Hardware::Trigger trigger);
 

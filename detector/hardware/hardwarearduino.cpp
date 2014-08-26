@@ -17,8 +17,8 @@ HardwareArduino::HardwareArduino(QObject *parent) :
 
     m_pantiltSpeed[Eye] = QPointF(0, 0);
     m_pantiltSpeed[Body] = QPointF(0, 0);
-    m_pantiltAcc[Eye] = QPointF(-30, 30);
-    m_pantiltAcc[Body] = QPointF(-30, 30);
+    m_pantiltAcc[Eye] = QPointF(-10, 10);
+    m_pantiltAcc[Body] = QPointF(-10, 10);
 }
 
 HardwareArduino::~HardwareArduino()

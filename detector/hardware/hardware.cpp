@@ -7,6 +7,7 @@ Hardware::Hardware(QObject *parent) :
     QObject(parent),
     m_parameterManager(new ParameterManager(this, this))
 {
+    qRegisterMetaType<Pantilt>("Pantilt");
 }
 
 void Hardware::init()
@@ -21,12 +22,32 @@ QString Hardware::settingsGroup()
 
 ParameterList Hardware::createParameters() const
 {
-    return ParameterList();
+    ParameterList list;
+    list << Parameter("calibration/Eye", tr("Eye calibration matrix"), Parameter::String, "")
+         << Parameter("calibration/Body", tr("Body calibration matrix"), Parameter::String, "");
+    return list;
 }
 
 ParameterManager *Hardware::parameterManager()
 {
     return m_parameterManager;
+}
+
+void Hardware::onParametersChanged()
+{
+
+}
+
+bool Hardware::center(Pantilt pantilt)
+{
+    int minX, maxX, minY, maxY;
+    if (!getLimits(pantilt, minX, maxX, minY, maxY))
+    {
+        qWarning() << "Could not get limits";
+        return false;
+    }
+
+    return targetAbsolute(pantilt, (minX+maxX)/2, (minY+maxY)/2, false);
 }
 
 bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)

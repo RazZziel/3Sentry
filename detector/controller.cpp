@@ -248,6 +248,12 @@ bool Controller::startCalibration()
         return false;
     }
 
+    for (int i=Hardware::EyeLaser; i<=Hardware::LeftGun; i++)
+    {
+        Hardware::Trigger trigger = (Hardware::Trigger) i;
+        m_hardware->startFiring(trigger);
+    }
+
     for (int i=Hardware::Body; i<=Hardware::Eye; i++)
     {
         Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
@@ -302,20 +308,18 @@ bool Controller::nextCalibrationPoint(Hardware::Pantilt pantilt, QPoint screenPo
         else
         {
             qDebug() << "Pantilt" << pantilt << "Calibration finished";
-        }
-    }
-    else if (m_calibrationData[pantilt].count() == nCalibrationPoints)
-    {
-        if (!m_hardware->setCalibrationData(pantilt, m_calibrationData[pantilt]))
-        {
-            qWarning() << "Could not set calibration data";
+
+            if (!m_hardware->setCalibrationData(pantilt, m_calibrationData[pantilt]))
+            {
+                qWarning() << "Could not set calibration data";
+            }
         }
     }
 
     if (m_calibrationData[Hardware::Body].count() >= nCalibrationPoints &&
             m_calibrationData[Hardware::Eye].count() >= nCalibrationPoints)
     {
-        m_calibrating = false;
+        abortCallbration();
     }
 
     return m_calibrating;
@@ -329,6 +333,13 @@ bool Controller::abortCallbration()
     }
 
     m_calibrating = false;
+
+    for (int i=Hardware::EyeLaser; i<=Hardware::LeftGun; i++)
+    {
+        Hardware::Trigger trigger = (Hardware::Trigger) i;
+        m_hardware->stopFiring(trigger);
+    }
+
     return true;
 }
 
@@ -341,6 +352,11 @@ bool Controller::targetAbsolute(Hardware::Pantilt pantilt, uint x, uint y)
 bool Controller::targetRelative(Hardware::Pantilt pantilt, qreal dx, qreal dy)
 {
     return m_hardware->targetRelative(pantilt, dx, dy);
+}
+
+bool Controller::center(Hardware::Pantilt pantilt)
+{
+    return m_hardware->center(pantilt);
 }
 
 bool Controller::startFiring(Hardware::Trigger trigger)

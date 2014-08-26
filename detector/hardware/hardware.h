@@ -20,8 +20,8 @@ public:
 
     enum Trigger {
         EyeLaser = 0,
-        RightGun = 1,
-        LeftGun = 2
+        LeftGun = 1,
+        RightGun = 2
     };
 
     // CalibrationData <xyOnHardware, xyOnCam>
@@ -41,8 +41,12 @@ public:
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
+    virtual bool center(Pantilt pantilt);
     virtual bool startFiring(Trigger trigger) =0;
     virtual bool stopFiring(Trigger trigger) =0;
+
+private slots:
+    virtual void onParametersChanged();
 
 protected:
     QPoint screen2hardware(Pantilt pantilt, QPoint xyOnScreen) const;

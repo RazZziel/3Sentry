@@ -32,7 +32,11 @@ int main(int argc, char** argv)
 
     bool ret = a.exec();
 
-    //controller.stopProcessing();
+    for (int i=Hardware::EyeLaser; i<=Hardware::LeftGun; i++)
+    {
+        Hardware::Trigger trigger = (Hardware::Trigger) i;
+        controller.hardware()->stopFiring(trigger);
+    }
 
     return ret;
 }
