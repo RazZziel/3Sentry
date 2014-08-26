@@ -193,16 +193,20 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
 
     if (hwPosition != m_currentHwPosition[pantilt].toPoint())
     {
+        emit currentPositionChanged(pantilt, screenPosition.x(), screenPosition.y());
+
         m_currentHwPosition[pantilt] = hwPosition;
+
+        QByteArray payload("A");
+        payload.append((quint8) pantilt);
+        payload.append((quint8) hwPosition.x());
+        payload.append((quint8) hwPosition.y());
+        return sendCommand(payload);
     }
-
-    emit currentPositionChanged(pantilt, screenPosition.x(), screenPosition.y());
-
-    QByteArray payload("A");
-    payload.append((quint8) pantilt);
-    payload.append((quint8) hwPosition.x());
-    payload.append((quint8) hwPosition.y());
-    return sendCommand(payload);
+    else
+    {
+        return true;
+    }
 }
 
 bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
