@@ -17,7 +17,7 @@ public:
 
     void init();
 
-    ParameterManager *paramenterManager();
+    ParameterManager *parameterManager();
     QString settingsGroup();
 
 protected:
@@ -30,6 +30,7 @@ private:
     Controller *m_controller;
     ParameterManager *m_parameterManager;
 
+    int m_dead_zone_radius;
     int m_max_joy;
     qreal m_axis_body_x;
     qreal m_axis_body_y;

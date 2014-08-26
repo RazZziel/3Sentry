@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>987</width>
+    <height>593</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -103,11 +103,11 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tab_detectors">
          <attribute name="title">
-          <string>Detectors</string>
+          <string>Detec.</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <property name="leftMargin">
@@ -137,6 +137,28 @@
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="tab_controller">
+         <attribute name="title">
+          <string>Ctrl.</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QFormLayout" name="formLayout_controllerProperties"/>
+          </item>
+         </layout>
+        </widget>
         <widget class="QWidget" name="tab_hardware">
          <attribute name="title">
           <string>Hw.</string>
@@ -159,11 +181,11 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tab_controller">
+        <widget class="QWidget" name="tab_input">
          <attribute name="title">
-          <string>Ctrl.</string>
+          <string>Input</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="leftMargin">
            <number>0</number>
           </property>
@@ -177,7 +199,7 @@
            <number>0</number>
           </property>
           <item>
-           <layout class="QFormLayout" name="formLayout_controllerProperties"/>
+           <layout class="QFormLayout" name="formLayout_inputProperties"/>
           </item>
          </layout>
         </widget>
@@ -205,7 +227,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>987</width>
      <height>24</height>
     </rect>
    </property>

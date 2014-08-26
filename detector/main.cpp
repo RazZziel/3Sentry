@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 
     SentryInput input(&controller);
     input.start();
+    controller.setInput(&input);
 
 #if 1
     SentryUI ui(&controller);

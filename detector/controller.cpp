@@ -12,6 +12,8 @@
 #include "detector/bodydetector.h"
 #include "detector/facedetector.h"
 
+#include "sentryinput.h"
+
 Controller::Controller(QObject *parent) :
     QObject(parent),
     m_parameterManager(new ParameterManager(this, this)),
@@ -117,9 +119,19 @@ Hardware *Controller::hardware()
     return m_hardware;
 }
 
+SentryInput *Controller::input()
+{
+    return m_input;
+}
+
 Audio *Controller::audio()
 {
     return m_audio;
+}
+
+void Controller::setInput(SentryInput *input)
+{
+    m_input = input;
 }
 
 bool Controller::setCaptureDevice(int device)

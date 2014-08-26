@@ -11,6 +11,7 @@
 
 class Detector;
 class Hardware;
+class SentryInput;
 class Audio;
 
 class Controller : public QObject, public ParameterOwner
@@ -21,7 +22,10 @@ public:
 
     QList<Detector*> detectors();
     Hardware *hardware();
+    SentryInput *input();
     Audio *audio();
+
+    void setInput(SentryInput *input);
 
     int numCaptureDevices();
     bool setCaptureDevice(int device);
@@ -78,6 +82,7 @@ private:
 
     QList<Detector*> m_detectors;
     Hardware *m_hardware;
+    SentryInput *m_input;
     Audio *m_audio;
 
     cv::VideoCapture* m_captureDevice;

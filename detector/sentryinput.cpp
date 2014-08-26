@@ -6,13 +6,13 @@
 
 #include <QDebug>
 
-#define MIN_JOY 5
 #define MAX_JOY 1500
 
 SentryInput::SentryInput(Controller *controller) :
     QThread(controller),
     m_controller(controller),
     m_parameterManager(new ParameterManager(this, this)),
+    m_dead_zone_radius(5),
     m_axis_body_x(0),
     m_axis_body_y(0),
     m_axis_laser_x(0),
@@ -20,6 +20,8 @@ SentryInput::SentryInput(Controller *controller) :
 {
     // Resources:
     //   https://code.google.com/p/joypick/
+
+    m_parameterManager->init();
 
     init();
 }
@@ -76,7 +78,7 @@ void SentryInput::run()
             case SDL_JOYAXISMOTION:
             {
                 qreal movement = 0;
-                if ( ( event.jaxis.value < -MIN_JOY ) || (event.jaxis.value > MIN_JOY ) )
+                if (qAbs(event.jaxis.value) > m_dead_zone_radius)
                 {
                     if(qAbs(event.jaxis.value) > m_max_joy)
                     {
@@ -183,7 +185,7 @@ void SentryInput::init()
     m_max_joy = MAX_JOY;
 }
 
-ParameterManager *SentryInput::paramenterManager()
+ParameterManager *SentryInput::parameterManager()
 {
     return m_parameterManager;
 }
@@ -196,20 +198,20 @@ QString SentryInput::settingsGroup()
 ParameterList SentryInput::createParameters() const
 {
     ParameterList list;
-    list << Parameter("leftGunButton", tr("Left Gun Fire Button"), Parameter::Integer, 6)
-         << Parameter("rightGunButton", tr("Right Gun Fire Button"), Parameter::Integer, 7)
-         << Parameter("laserButton", tr("Laser Fire Button"), Parameter::Integer, 1)
-         << Parameter("gunHorizAxis", tr("Horizontal Gun Axis"), Parameter::Integer, 0)
-         << Parameter("gunVertAxis", tr("Gun Vertical Axis"), Parameter::Integer, 1)
-         << Parameter("laserHorizAxis", tr("Laser Horizontal Axis"), Parameter::Integer, 2)
-         << Parameter("laserVertAxis", tr("Laser Vertical Axis"), Parameter::Integer, 3);
-
+    list << Parameter("mapping/leftGunButton", tr("Left gun fire button"), Parameter::Integer, 6)
+         << Parameter("mapping/rightGunButton", tr("Right gun fire button"), Parameter::Integer, 7)
+         << Parameter("mapping/laserButton", tr("Laser fire button"), Parameter::Integer, 1)
+         << Parameter("mapping/bodyHorizAxis", tr("Body horizontal axis"), Parameter::Integer, 0)
+         << Parameter("mapping/bodyVertAxis", tr("Body vertical axis"), Parameter::Integer, 1)
+         << Parameter("mapping/laserHorizAxis", tr("Laser horizontal axis"), Parameter::Integer, 2)
+         << Parameter("mapping/laserVertAxis", tr("Laser vertical axis"), Parameter::Integer, 3)
+         << Parameter("deadZoneRadius", tr("Joystick dead zone radius"), Parameter::Integer, 5);
     return list;
 }
 
 void SentryInput::onParametersChanged()
 {
-    // TODO: Update parameters
+    m_dead_zone_radius = m_parameterManager->value("deadZoneRadius").toInt();
 }
 
 

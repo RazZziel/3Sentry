@@ -39,6 +39,7 @@ private slots:
     void updateDetectorParameters();
     void updateHardwareParameters();
     void updateControllerParameters();
+    void updateInputParameters();
     void on_btnStartCalibration_clicked();
     void on_btnAbortCalibration_clicked();
 };

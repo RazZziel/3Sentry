@@ -1,3 +1,5 @@
+#include "sentryui.h"
+
 #include <unistd.h>
 #include <QCloseEvent>
 #include <QFileDialog>
@@ -5,12 +7,13 @@
 #include <QDesktopServices>
 #include <QSettings>
 #include <QKeyEvent>
-#include "sentryui.h"
+
 #include "ui_sentryui.h"
 #include "controller.h"
 #include "util.h"
 #include "audio.h"
 #include "detector/detector.h"
+#include "sentryinput.h"
 #include "ui/parameterwidget.h"
 
 SentryUI::SentryUI(Controller *controller, QWidget *parent) :
@@ -45,6 +48,9 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
 
     updateHardwareParameters();
     updateControllerParameters();
+    updateInputParameters();
+
+    ui->tabWidget->setCurrentWidget(ui->tab_detectors);
 
     connect(ui->wOpenCV, SIGNAL(clicked(Qt::MouseButton,QPoint)), SLOT(onOpenCvViewClicked(Qt::MouseButton,QPoint)));
 
@@ -142,6 +148,12 @@ void SentryUI::updateControllerParameters()
 {
     Util::clearLayout(ui->formLayout_controllerProperties);
     fillParameterForm(m_controller->parameterManager(), ui->formLayout_controllerProperties);
+}
+
+void SentryUI::updateInputParameters()
+{
+    Util::clearLayout(ui->formLayout_inputProperties);
+    fillParameterForm(m_controller->input()->parameterManager(), ui->formLayout_inputProperties);
 }
 
 void SentryUI::fillParameterForm(ParameterManager *parameterManager, QFormLayout *layout)

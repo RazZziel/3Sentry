@@ -116,13 +116,9 @@ void HardwareArduino::sendCurrentPosition()
         newPosition.ry() = qMax(m_minHwPosition[pantilt].y(), newPosition.y());
         newPosition.ry() = qMin(m_maxHwPosition[pantilt].y(), newPosition.y());
 
-        if (newPosition.toPoint() != m_currentHwPosition[pantilt].toPoint())
-        {
-            m_currentHwPosition[pantilt] = newPosition;
-            targetAbsolute(pantilt,
-                           m_currentHwPosition[pantilt].x(),
-                           m_currentHwPosition[pantilt].y(), false);
-        }
+        targetAbsolute(pantilt,
+                       newPosition.x(),
+                       newPosition.y(), false);
     }
 }
 
@@ -183,19 +179,29 @@ bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 
 bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
+    QPoint hwPosition(x, y);
+    QPoint screenPosition(x, y);
+
     if (convertPos)
     {
-        QPoint hwPosition = screen2hardware(pantilt, QPoint(x,y));
-        x = hwPosition.x();
-        y = hwPosition.y();
+        hwPosition = screen2hardware(pantilt, screenPosition);
+    }
+    else
+    {
+        screenPosition = hardware2screen(pantilt, hwPosition);
     }
 
-    emit currentPositionChanged(pantilt, x, y);
+    if (hwPosition != m_currentHwPosition[pantilt].toPoint())
+    {
+        m_currentHwPosition[pantilt] = hwPosition;
+    }
+
+    emit currentPositionChanged(pantilt, screenPosition.x(), screenPosition.y());
 
     QByteArray payload("A");
     payload.append((quint8) pantilt);
-    payload.append((quint8) x);
-    payload.append((quint8) y);
+    payload.append((quint8) hwPosition.x());
+    payload.append((quint8) hwPosition.y());
     return sendCommand(payload);
 }
 
