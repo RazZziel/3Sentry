@@ -1,12 +1,33 @@
 #include <QApplication>
+#include <QMessageLogContext>
+#include <QTextStream>
 
 #include "controller.h"
 #include "sentryui.h"
 #include "sentryweb.h"
 #include "sentryinput.h"
 
+void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    Q_UNUSED(context);
+
+    switch (type)
+    {
+        case QtDebugMsg:
+            QTextStream(stdout) << msg << endl;
+            break;
+        case QtWarningMsg:
+        case QtCriticalMsg:
+        case QtFatalMsg:
+            QTextStream(stderr) << msg << endl;
+            break;
+    }
+}
+
 int main(int argc, char** argv)
 {
+    qInstallMessageHandler(debugMessageHandler);
+
     QCoreApplication::setOrganizationName("i+D3");
     QCoreApplication::setOrganizationDomain("imasdetres.com");
     QCoreApplication::setApplicationName("3Sentry");

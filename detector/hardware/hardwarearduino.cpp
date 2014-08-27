@@ -189,6 +189,10 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
 
         m_currentHwPosition[pantilt] = hwPosition;
 
+        qDebug() << "Pantilt" << pantilt
+                 << "targeting hw=" << hwPosition
+                 << "screen=" << screenPosition;
+
         QByteArray payload("A");
         payload.append((quint8) pantilt);
         payload.append((quint8) hwPosition.x());
