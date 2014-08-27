@@ -121,14 +121,26 @@ void SentryUI::onCaptureDeviceChanged(int index)
 
 void SentryUI::onOpenCvViewClicked(Qt::MouseButton button, QPoint pos)
 {
-    m_controller->nextCalibrationPoint(button == Qt::LeftButton
-                                       ? Hardware::Body
-                                       : Hardware::Eye,
-                                       pos);
+    if (m_controller->isCalibrating())
+    {
+        m_controller->nextCalibrationPoint(button == Qt::LeftButton
+                                           ? Hardware::Body
+                                           : Hardware::Eye,
+                                           pos);
 
-    ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
-                                        ? ui->page_abortCalibration
-                                        : ui->page_startCalibration);
+        ui->stackedWidget->setCurrentWidget(m_controller->isCalibrating()
+                                            ? ui->page_abortCalibration
+                                            : ui->page_startCalibration);
+    }
+    else
+    {
+        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+        {
+            Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+
+            m_controller->targetAbsolute(pantilt, pos.x(), pos.y());
+        }
+    }
 }
 
 void SentryUI::updateDetectorParameters()
@@ -242,15 +254,15 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
                 {
                 case Qt::Key_1:
                     m_controller->startFiring(Hardware::EyeLaser);
-                    return true;
+                    break;
 
                 case Qt::Key_2:
                     m_controller->startFiring(Hardware::LeftGun);
-                    return true;
+                    break;
 
                 case Qt::Key_3:
                     m_controller->startFiring(Hardware::RightGun);
-                    return true;
+                    break;
                 }
             }
             else
@@ -259,15 +271,15 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
                 {
                 case Qt::Key_1:
                     m_controller->stopFiring(Hardware::EyeLaser);
-                    return true;
+                    break;
 
                 case Qt::Key_2:
                     m_controller->stopFiring(Hardware::LeftGun);
-                    return true;
+                    break;
 
                 case Qt::Key_3:
                     m_controller->stopFiring(Hardware::RightGun);
-                    return true;
+                    break;
                 }
             }
         }
