@@ -20,6 +20,7 @@ public:
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
+    bool center(Pantilt pantilt);
     bool startFiring(Trigger trigger);
     bool stopFiring(Trigger trigger);
 

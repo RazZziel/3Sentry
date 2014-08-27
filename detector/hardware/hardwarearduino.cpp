@@ -162,7 +162,8 @@ bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     x = screeenPoint.x();
     y = screeenPoint.y();
 
-    qDebug() << "Current position:"
+    qDebug() << "Pantilt" << pantilt
+             << "current position:"
              << "hw=" << hardwarePoint
              << "screen=" << screeenPoint;
 
@@ -190,7 +191,8 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
         m_currentHwPosition[pantilt] = hwPosition;
 
         qDebug() << "Pantilt" << pantilt
-                 << "targeting hw=" << hwPosition
+                 << "targeting:"
+                 << "hw=" << hwPosition
                  << "screen=" << screenPosition;
 
         QByteArray payload("A");
@@ -209,6 +211,11 @@ bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
     m_pantiltSpeed[pantilt] = QPointF(dx, dy);
     return true;
+}
+
+bool HardwareArduino::center(Pantilt pantilt)
+{
+    return targetAbsolute(pantilt, 90, 90);
 }
 
 bool HardwareArduino::startFiring(Trigger trigger)
