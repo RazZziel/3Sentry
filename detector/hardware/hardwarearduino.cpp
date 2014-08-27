@@ -6,11 +6,11 @@ HardwareArduino::HardwareArduino(QObject *parent) :
     Hardware(parent),
     m_serialPort(new QSerialPort(this))
 {
-    connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
-    m_positionUpdateTimer.setInterval(32);
-
     connect(&m_positionQueryTimer, SIGNAL(timeout()), SLOT(updateCurrentPosition()));
     m_positionQueryTimer.setInterval(10*1000);
+
+    connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
+    m_positionUpdateTimer.setInterval(32);
 
     m_pantiltSpeed[Eye] = QPointF(0, 0);
     m_pantiltSpeed[Body] = QPointF(0, 0);
@@ -53,8 +53,8 @@ void HardwareArduino::onParametersChanged()
         else
         {
             int minX, maxX, minY, maxY;
-            getLimits(Body, minX, maxX, minY, maxY);
-            getLimits(Eye, minX, maxX, minY, maxY);
+            hw_getLimits(Body, minX, maxX, minY, maxY);
+            hw_getLimits(Eye, minX, maxX, minY, maxY);
             updateCurrentPosition();
         }
     }
@@ -79,7 +79,7 @@ void HardwareArduino::updateCurrentPosition()
 
         uint x=0;
         uint y=0;
-        if (currentPosition(pantilt, x, y))
+        if (hw_currentPosition(pantilt, x, y))
         {
             m_currentHwPosition[pantilt].rx() = x;
             m_currentHwPosition[pantilt].ry() = y;
@@ -114,6 +114,15 @@ void HardwareArduino::sendCurrentPosition()
 
 bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
 {
+    minX = m_minHwPosition[pantilt].x();
+    minY = m_minHwPosition[pantilt].y();
+    maxX = m_maxHwPosition[pantilt].x();
+    maxY = m_maxHwPosition[pantilt].y();
+    return true;
+}
+
+bool HardwareArduino::hw_getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
+{
     QByteArray payload("L");
     QByteArray reply;
     payload.append((quint8) pantilt);
@@ -142,6 +151,13 @@ bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY
 }
 
 bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
+{
+    x = m_currentHwPosition[pantilt].x();
+    y = m_currentHwPosition[pantilt].y();
+    return true;
+}
+
+bool HardwareArduino::hw_currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
     QByteArray payload("P");
     QByteArray reply;

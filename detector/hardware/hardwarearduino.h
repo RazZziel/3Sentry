@@ -25,6 +25,9 @@ public:
     bool stopFiring(Trigger trigger);
 
 private:
+    bool hw_getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
+    bool hw_currentPosition(Pantilt pantilt, uint &x, uint &y) const;
+
     bool sendCommand(const QByteArray &payload, QByteArray *ret_reply=NULL) const;
     bool readReply(QByteArray *ret_reply) const;
 
