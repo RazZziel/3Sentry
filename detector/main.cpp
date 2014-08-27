@@ -14,12 +14,12 @@ void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, cons
     switch (type)
     {
         case QtDebugMsg:
-            QTextStream(stdout) << msg << endl;
+            QTextStream(stdout) << "[" << context.category << "] " << msg << endl;
             break;
         case QtWarningMsg:
         case QtCriticalMsg:
         case QtFatalMsg:
-            QTextStream(stderr) << msg << endl;
+            QTextStream(stderr) << "[" << context.category << "] " << msg << endl;
             break;
     }
 }

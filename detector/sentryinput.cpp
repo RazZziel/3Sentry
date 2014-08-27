@@ -12,6 +12,7 @@ SentryInput::SentryInput(Controller *controller) :
     QThread(controller),
     m_controller(controller),
     m_parameterManager(new ParameterManager(this, this)),
+    cat("SentryInput"),
     m_dead_zone_radius(5),
     m_axis_body_x(0),
     m_axis_body_y(0),
@@ -20,6 +21,8 @@ SentryInput::SentryInput(Controller *controller) :
 {
     // Resources:
     //   https://code.google.com/p/joypick/
+
+    cat.setEnabled(QtDebugMsg, false);
 
     m_parameterManager->init();
 
@@ -36,7 +39,7 @@ void SentryInput::run()
             switch (event.type)
             {
             case SDL_JOYBUTTONDOWN:
-                qDebug() << "Pushed button" << event.jbutton.button;
+                qDebug(cat) << "Pushed button" << event.jbutton.button;
                 if(event.jbutton.button == m_left_fire_button)
                 {
                     m_controller->startFiring(Hardware::LeftGun);
@@ -60,7 +63,7 @@ void SentryInput::run()
                 break;
 
             case SDL_JOYBUTTONUP:
-                qDebug() << "Released button" << event.jbutton.button;
+                qDebug(cat) << "Released button" << event.jbutton.button;
                 if(event.jbutton.button == m_left_fire_button)
                 {
                     m_controller->stopFiring(Hardware::LeftGun);
@@ -105,7 +108,7 @@ void SentryInput::run()
                     m_axis_laser_y = movement;
                 }
 
-                qDebug() << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
+                qDebug(cat) << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
 
                 if (event.jaxis.axis == 0 || event.jaxis.axis == 1)
                 {
@@ -126,18 +129,18 @@ void SentryInput::init()
 {
     if (SDL_Init( SDL_INIT_JOYSTICK ) < 0)
     {
-        qWarning() << "Couldn't initialize SDL:" << SDL_GetError();
+        qWarning(cat) << "Couldn't initialize SDL:" << SDL_GetError();
         return;
     }
 
-    qDebug() << SDL_NumJoysticks() << "controllers were found";
+    qDebug(cat) << SDL_NumJoysticks() << "controllers were found";
 
     for (int i=0; i<SDL_NumJoysticks(); ++i)
     {
         SDL_Joystick* j = SDL_JoystickOpen(i);
         char guid[255];
         SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(j), guid, 255);
-        qDebug() << "   [" << guid << "]" << SDL_JoystickName(j);
+        qDebug(cat) << "   [" << guid << "]" << SDL_JoystickName(j);
 
         if (!strcmp(guid, "030000004c050000c405000011010000"))
         {

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QLoggingCategory>
 
 #include "parametermanager.h"
 
@@ -29,6 +30,7 @@ private slots:
 private:
     Controller *m_controller;
     ParameterManager *m_parameterManager;
+    QLoggingCategory cat;
 
     int m_dead_zone_radius;
     int m_max_joy;
