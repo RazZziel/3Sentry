@@ -176,6 +176,11 @@ void Controller::startProcessing()
 {
     m_processing = true;
 
+    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        m_hardware->center(pantilt);
+    }
     m_hardware->startFiring(Hardware::EyeLaser);
 
     m_audio->play(Audio::Autosearch);
@@ -272,8 +277,8 @@ bool Controller::startCalibration()
 #else
         m_calibrationData[pantilt].clear();
         m_calibrationHwPoints[pantilt] << QPoint(90, 90)
-                                       << QPoint(90-10, 90)
-                                       << QPoint(90-10, 90+10);
+                                       << QPoint(90-5, 90)
+                                       << QPoint(90+5, 90+5);
 #endif
 
         QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
@@ -593,6 +598,11 @@ QList<Controller::TrackingObject> Controller::findTrackingObjects(const QList<cv
         {
             trackingObject.id = m_trackingObjectId++;
             //qDebug() << "Creating new tracking object" << trackingObject.id;
+
+            if (!m_audio->isPlaying())
+            {
+                m_audio->play(Audio::Deploy);
+            }
         }
 
 

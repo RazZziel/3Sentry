@@ -76,15 +76,14 @@ void HardwareArduino::updateCurrentPosition()
     {
         Pantilt pantilt = (Pantilt) i;
 
-        uint x=0;
-        uint y=0;
-        if (hw_currentPosition(pantilt, x, y))
+        if (hw_updateCurrentPosition(pantilt))
         {
-            m_currentHwPosition[pantilt].rx() = x;
-            m_currentHwPosition[pantilt].ry() = y;
-
             QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt].toPoint());
             emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
+        }
+        else
+        {
+            qWarning() << "Could not update pantilt position";
         }
     }
 }
@@ -154,7 +153,7 @@ bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     return true;
 }
 
-bool HardwareArduino::hw_currentPosition(Pantilt pantilt, uint &x, uint &y) const
+bool HardwareArduino::hw_updateCurrentPosition(Pantilt pantilt)
 {
     QByteArray payload("P");
     QByteArray reply;
@@ -172,13 +171,13 @@ bool HardwareArduino::hw_currentPosition(Pantilt pantilt, uint &x, uint &y) cons
 
     QPoint hardwarePoint((quint8) reply[0], (quint8) reply[1]);
     QPoint screeenPoint = hardware2screen(pantilt, hardwarePoint);
-    x = screeenPoint.x();
-    y = screeenPoint.y();
 
     qDebug() << "Pantilt" << pantilt
              << "current position:"
              << "hw=" << hardwarePoint
              << "screen=" << screeenPoint;
+
+    m_currentHwPosition[pantilt] = QPointF(hardwarePoint.x(), hardwarePoint.y());
 
     return true;
 }

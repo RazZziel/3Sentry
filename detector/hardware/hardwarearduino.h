@@ -26,7 +26,7 @@ public:
 
 private:
     bool hw_updateLimits(Pantilt pantilt);
-    bool hw_currentPosition(Pantilt pantilt, uint &x, uint &y) const;
+    bool hw_updateCurrentPosition(Pantilt pantilt);
 
     bool sendCommand(const QByteArray &payload, QByteArray *ret_reply=NULL) const;
     bool readReply(QByteArray *ret_reply) const;
