@@ -179,11 +179,6 @@ void Controller::startProcessing()
 {
     m_processing = true;
 
-    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
-    {
-        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
-        m_hardware->center(pantilt);
-    }
     m_hardware->startFiring(Hardware::EyeLaser);
 
     m_audio->play(Audio::Autosearch);

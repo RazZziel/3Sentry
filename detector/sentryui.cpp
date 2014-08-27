@@ -241,7 +241,6 @@ bool SentryUI::eventFilter(QObject *object, QEvent *event)
             else if (m_keyState[Qt::Key_Right] || m_keyState[Qt::Key_D] || m_keyState[Qt::Key_L])
                 dx = speed;
 
-            qDebug() << m_keyState[Qt::Key_Up] << dy;
             m_controller->targetRelative(pantilt, dx, dy);
 
             return true;

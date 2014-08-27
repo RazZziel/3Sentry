@@ -14,6 +14,12 @@ Hardware::Hardware(QObject *parent) :
 void Hardware::init()
 {
     m_parameterManager->init();
+
+    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        center(pantilt);
+    }
 }
 
 QString Hardware::settingsGroup()
