@@ -13,6 +13,7 @@ public:
         Real,
         String,
         Color,
+        Selection
     };
 
     Parameter();
@@ -22,6 +23,10 @@ public:
               const QVariant &defaultValue,
               const QVariant &minValue = QVariant(),
               const QVariant &maxValue = QVariant());
+    static Parameter selection(const QString &code,
+                               const QString &name,
+                               const QVariantMap &options,
+                               const QVariant &defaultValue = QVariant());
 
     QString m_code;
     QString m_name;
@@ -31,6 +36,8 @@ public:
     QVariant m_defaultValue;
     QVariant m_minValue;
     QVariant m_maxValue;
+
+    QVariantMap m_options;
 };
 
 typedef QMap<QString, Parameter> ParameterMap;

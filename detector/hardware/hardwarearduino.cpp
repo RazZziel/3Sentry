@@ -48,7 +48,8 @@ void HardwareArduino::onParametersChanged()
 
         if (!m_serialPort->open(QIODevice::ReadWrite))
         {
-            qWarning() << "Could not open serial port:" << m_serialPort->errorString();
+            qWarning() << "Could not open serial port" << m_serialPort->portName()
+                       << ":" << m_serialPort->errorString();
         }
         else
         {

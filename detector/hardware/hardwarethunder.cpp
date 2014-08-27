@@ -52,8 +52,11 @@ HardwareThunder::HardwareThunder(QObject *parent) :
 
 HardwareThunder::~HardwareThunder()
 {
-    usb_release_interface(m_usbHandler, 0);
-    usb_close(m_usbHandler);
+    if (m_usbHandler)
+    {
+        usb_release_interface(m_usbHandler, 0);
+        usb_close(m_usbHandler);
+    }
 }
 
 bool HardwareThunder::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)

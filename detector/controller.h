@@ -108,6 +108,7 @@ private:
 
 private slots:
     void process();
+    void onParametersChanged();
     void onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y);
 
 signals:

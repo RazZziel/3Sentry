@@ -1,12 +1,14 @@
 #include "parameterwidget.h"
 #include "ui_parameterwidget.h"
 
+#include <QDebug>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QColorDialog>
+#include <QComboBox>
 
 #include "parameter.h"
 #include "util.h"
@@ -14,7 +16,7 @@
 ParameterWidget::ParameterWidget(Parameter &detectorParameter, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ParameterWidget),
-    m_detectorParameter(detectorParameter)
+    m_parameter(detectorParameter)
 {
     ui->setupUi(this);
 
@@ -32,7 +34,7 @@ void ParameterWidget::load()
 
     QWidget *widget = NULL;
 
-    switch (m_detectorParameter.m_type)
+    switch (m_parameter.m_type)
     {
     case Parameter::Unknown:
         break;
@@ -40,7 +42,7 @@ void ParameterWidget::load()
     case Parameter::Boolean:
     {
         QCheckBox *checkBox = new QCheckBox(this);
-        checkBox->setChecked(m_detectorParameter.m_value.toBool());
+        checkBox->setChecked(m_parameter.m_value.toBool());
         connect(checkBox, SIGNAL(toggled(bool)), SLOT(save()));
         widget = checkBox;
     }
@@ -49,11 +51,11 @@ void ParameterWidget::load()
     case Parameter::Integer:
     {
         QSpinBox *spinBox = new QSpinBox(this);
-        if (!m_detectorParameter.m_minValue.isNull())
-            spinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
-        if (!m_detectorParameter.m_maxValue.isNull())
-            spinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
-        spinBox->setValue(m_detectorParameter.m_value.toInt());
+        if (!m_parameter.m_minValue.isNull())
+            spinBox->setMinimum(m_parameter.m_minValue.toInt());
+        if (!m_parameter.m_maxValue.isNull())
+            spinBox->setMaximum(m_parameter.m_maxValue.toInt());
+        spinBox->setValue(m_parameter.m_value.toInt());
         connect(spinBox, SIGNAL(valueChanged(int)), SLOT(save()));
         widget = spinBox;
     }
@@ -62,11 +64,11 @@ void ParameterWidget::load()
     case Parameter::Real:
     {
         QDoubleSpinBox *doubleSpinBox = new QDoubleSpinBox(this);
-        if (!m_detectorParameter.m_minValue.isNull())
-            doubleSpinBox->setMinimum(m_detectorParameter.m_minValue.toInt());
-        if (!m_detectorParameter.m_maxValue.isNull())
-            doubleSpinBox->setMaximum(m_detectorParameter.m_maxValue.toInt());
-        doubleSpinBox->setValue(m_detectorParameter.m_value.toDouble());
+        if (!m_parameter.m_minValue.isNull())
+            doubleSpinBox->setMinimum(m_parameter.m_minValue.toInt());
+        if (!m_parameter.m_maxValue.isNull())
+            doubleSpinBox->setMaximum(m_parameter.m_maxValue.toInt());
+        doubleSpinBox->setValue(m_parameter.m_value.toDouble());
         connect(doubleSpinBox, SIGNAL(valueChanged(double)), SLOT(save()));
         widget = doubleSpinBox;
     }
@@ -75,7 +77,7 @@ void ParameterWidget::load()
     case Parameter::String:
     {
         QLineEdit *lineEdit = new QLineEdit(this);
-        lineEdit->setText(m_detectorParameter.m_value.toString());
+        lineEdit->setText(m_parameter.m_value.toString());
         connect(lineEdit, SIGNAL(textChanged(QString)), SLOT(save()));
         widget = lineEdit;
     }
@@ -86,6 +88,22 @@ void ParameterWidget::load()
         QPushButton *pushButton = new QPushButton(tr("Select"), this);
         connect(pushButton, SIGNAL(clicked()), SLOT(save()));
         widget = pushButton;
+    }
+        break;
+
+    case Parameter::Selection:
+    {
+        QComboBox *comboBox = new QComboBox(this);
+        foreach (const QString &key, m_parameter.m_options.keys())
+        {
+            comboBox->addItem(key, m_parameter.m_options.value(key));
+        }
+        if (!m_parameter.m_defaultValue.isNull())
+        {
+            comboBox->setCurrentIndex(comboBox->findData(m_parameter.m_value));
+        }
+        connect(comboBox, SIGNAL(currentIndexChanged(int)), SLOT(save()));
+        widget = comboBox;
     }
         break;
     }
@@ -102,7 +120,7 @@ void ParameterWidget::save()
     QWidget *widget = dynamic_cast<QWidget*>(sender());
     Q_ASSERT(widget != NULL);
 
-    switch (m_detectorParameter.m_type)
+    switch (m_parameter.m_type)
     {
     case Parameter::Unknown:
         break;
@@ -112,7 +130,7 @@ void ParameterWidget::save()
         QCheckBox *checkBox = dynamic_cast<QCheckBox*>(widget);
         Q_ASSERT(checkBox != NULL);
 
-        m_detectorParameter.m_value = checkBox->isChecked();
+        m_parameter.m_value = checkBox->isChecked();
     }
         break;
 
@@ -121,7 +139,7 @@ void ParameterWidget::save()
         QSpinBox *spinBox = dynamic_cast<QSpinBox*>(widget);
         Q_ASSERT(spinBox != NULL);
 
-        m_detectorParameter.m_value = spinBox->value();
+        m_parameter.m_value = spinBox->value();
     }
         break;
 
@@ -130,7 +148,7 @@ void ParameterWidget::save()
         QDoubleSpinBox *doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(widget);
         Q_ASSERT(doubleSpinBox != NULL);
 
-        m_detectorParameter.m_value = doubleSpinBox->value();
+        m_parameter.m_value = doubleSpinBox->value();
     }
         break;
 
@@ -139,7 +157,7 @@ void ParameterWidget::save()
         QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(widget);
         Q_ASSERT(lineEdit != NULL);
 
-        m_detectorParameter.m_value = lineEdit->text();
+        m_parameter.m_value = lineEdit->text();
     }
         break;
 
@@ -148,19 +166,28 @@ void ParameterWidget::save()
         QPushButton *pushButton = dynamic_cast<QPushButton*>(widget);
         Q_ASSERT(pushButton != NULL);
 
-        QColorDialog *d = new QColorDialog(m_detectorParameter.m_value.value<QColor>(), this);
+        QColorDialog *d = new QColorDialog(m_parameter.m_value.value<QColor>(), this);
         d->exec();
-        m_detectorParameter.m_value = d->selectedColor();
+        m_parameter.m_value = d->selectedColor();
+    }
+        break;
+
+    case Parameter::Selection:
+    {
+        QComboBox *comboBox = dynamic_cast<QComboBox*>(widget);
+        Q_ASSERT(comboBox != NULL);
+
+        m_parameter.m_value = comboBox->currentData();
     }
         break;
     }
 
-    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
+    emit valueChanged(m_parameter.m_code, m_parameter.m_value);
 }
 
 void ParameterWidget::on_btnReset_clicked()
 {
-    m_detectorParameter.m_value = m_detectorParameter.m_defaultValue;
+    m_parameter.m_value = m_parameter.m_defaultValue;
     load();
-    emit valueChanged(m_detectorParameter.m_code, m_detectorParameter.m_value);
+    emit valueChanged(m_parameter.m_code, m_parameter.m_value);
 }

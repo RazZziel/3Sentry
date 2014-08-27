@@ -52,12 +52,9 @@ Controller::Controller(QObject *parent) :
         qWarning() << "Could not query OpenCL devices:" << QString::fromStdString(e.msg);
     }
 
+    connect(m_parameterManager, &ParameterManager::parametersChanged,
+            this, &Controller::onParametersChanged);
     m_parameterManager->init();
-
-    //m_hardware = new HardwareArduino();
-    m_hardware = new HardwareEmulator();
-    //m_hardware = new HardwareThunder();
-    m_hardware->init();
 
     m_detectors << new MovementDetector(this)
                 << new ColorDetector(this)
@@ -96,8 +93,14 @@ QString Controller::settingsGroup()
 
 ParameterList Controller::createParameters() const
 {
+    QVariantMap hardwareMap;
+    hardwareMap.insert(tr("Arduino"), "arduino");
+    hardwareMap.insert(tr("Thunder"), "thunder");
+    hardwareMap.insert(tr("Emulator"), "emulator");
+
     ParameterList list;
-    list << Parameter("aimTargets", tr("Aim targets"), Parameter::Boolean, true)
+    list << Parameter::selection("hardware", tr("Hardware"), hardwareMap, "arduino")
+         << Parameter("aimTargets", tr("Aim targets"), Parameter::Boolean, true)
          << Parameter("tagTargets", tr("Tag targets"), Parameter::Boolean, true)
          << Parameter("shootTargets", tr("Shoot targets"), Parameter::Boolean, false)
          << Parameter("shootTolerance", tr("Shoot tolerance"), Parameter::Integer, 5, 0, 500);
@@ -526,6 +529,33 @@ void Controller::process()
     }
 
     m_processTimer.start();
+}
+
+void Controller::onParametersChanged()
+{
+    if (m_hardware)
+    {
+        delete m_hardware;
+        m_hardware = NULL;
+    }
+
+    QString hardware = m_parameterManager->value("hardware").toString();
+    if (hardware == "arduino")
+        m_hardware = new HardwareArduino();
+    else if (hardware == "thunder")
+        m_hardware = new HardwareThunder();
+    else if (hardware == "emulator")
+        m_hardware = new HardwareEmulator();
+
+    if (m_hardware)
+    {
+        qDebug() << "Initializing hardware" << hardware;
+        m_hardware->init();
+    }
+    else
+    {
+        qCritical() << "Invalid hardware name" << hardware;
+    }
 }
 
 void Controller::onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y)

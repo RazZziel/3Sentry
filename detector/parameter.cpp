@@ -17,3 +17,13 @@ Parameter::Parameter(const QString &code,
     m_maxValue(maxValue)
 {
 }
+
+Parameter Parameter::selection(const QString &code,
+                               const QString &name,
+                               const QVariantMap &options,
+                               const QVariant &defaultValue)
+{
+    Parameter parameter(code, name, Selection, defaultValue);
+    parameter.m_options = options;
+    return parameter;
+}

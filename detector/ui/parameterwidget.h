@@ -19,7 +19,7 @@ public:
 
 private:
     Ui::ParameterWidget *ui;
-    Parameter &m_detectorParameter;
+    Parameter &m_parameter;
 
 private slots:
     void load();
