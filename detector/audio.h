@@ -2,6 +2,7 @@
 #define AUDIO_H
 
 #include <QObject>
+#include <QHash>
 
 class QMediaPlayer;
 
@@ -24,6 +25,7 @@ private:
     QString getFilename(Type type, int index=-1);
 
     QMediaPlayer *m_player;
+    QHash<Type,int> m_lastSampleIndex;
 };
 
 #endif // AUDIO_H

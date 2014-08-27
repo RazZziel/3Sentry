@@ -48,7 +48,14 @@ QString Audio::getFilename(Type type, int index)
 
     if (index < 0 || index >= entries.count())
     {
-        index = qrand() % entries.count();
+        do
+        {
+            index = qrand() % entries.count();
+        }
+        while (m_lastSampleIndex.contains(type) &&
+               m_lastSampleIndex.value(type) == index);
+
+        m_lastSampleIndex[type] = index;
     }
 
     QFileInfo randomFile = entries.value(index);
