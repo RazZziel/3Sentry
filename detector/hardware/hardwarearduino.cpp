@@ -52,9 +52,8 @@ void HardwareArduino::onParametersChanged()
         }
         else
         {
-            int minX, maxX, minY, maxY;
-            hw_getLimits(Body, minX, maxX, minY, maxY);
-            hw_getLimits(Eye, minX, maxX, minY, maxY);
+            hw_updateLimits(Body);
+            hw_updateLimits(Eye);
             updateCurrentPosition();
         }
     }
@@ -121,7 +120,7 @@ bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY
     return true;
 }
 
-bool HardwareArduino::hw_getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY)
+bool HardwareArduino::hw_updateLimits(Pantilt pantilt)
 {
     QByteArray payload("L");
     QByteArray reply;
@@ -137,15 +136,13 @@ bool HardwareArduino::hw_getLimits(Pantilt pantilt, int &minX, int &maxX, int &m
         return false;
     }
 
-    minX = (quint8) reply[0];
-    maxX = (quint8) reply[1];
-    minY = (quint8) reply[2];
-    maxY = (quint8) reply[3];
+    m_minHwPosition[pantilt] = QPoint((quint8) reply[0], (quint8) reply[2]);
+    m_maxHwPosition[pantilt] = QPoint((quint8) reply[1], (quint8) reply[3]);
 
-    qDebug() << "Limits:" << minX << maxX << minY << maxY;
-
-    m_minHwPosition[pantilt] = QPoint(minX, minY);
-    m_maxHwPosition[pantilt] = QPoint(maxX, maxY);
+    qDebug() << "Pantilt" << pantilt
+             << "limits:"
+             << "min" << m_minHwPosition[pantilt]
+             << "max" << m_maxHwPosition[pantilt];
 
     return true;
 }
