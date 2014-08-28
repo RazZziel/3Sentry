@@ -17,7 +17,7 @@ int nPanTilts = 0;
 
 Servo servoPan, servoTilt;
 
-void serialWrite(char bytes[]);
+void serialWrite(char bytes[], unsigned char len);
 void ack();
 void nack();
 void processCommand();
@@ -206,7 +206,7 @@ void getPosition(unsigned char panTiltId)
 {
     if (panTiltId < nPanTilts)
     {
-        char[2] buf;
+        char buf[2];
         serialWrite(buf, panTilts[panTiltId]->currentPosition(buf));
     }
 }
