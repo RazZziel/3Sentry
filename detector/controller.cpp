@@ -179,8 +179,6 @@ void Controller::startProcessing()
 {
     m_processing = true;
 
-    m_hardware->startFiring(Hardware::EyeLaser);
-
     m_audio->play(Audio::Autosearch);
 }
 
@@ -450,6 +448,8 @@ void Controller::process()
         {
             if (m_parameterManager->value("tagTargets").toBool())
             {
+                m_hardware->startFiring(Hardware::EyeLaser);
+
                 targetAbsolute(Hardware::Eye,
                                m_currentTarget->center.x,
                                m_currentTarget->center.y);
@@ -461,6 +461,10 @@ void Controller::process()
                                m_currentTarget->center.x,
                                m_currentTarget->center.y);
             }
+        }
+        else
+        {
+            m_hardware->stopFiring(Hardware::EyeLaser);
         }
 
 
