@@ -13,7 +13,7 @@ HardwareArduino::HardwareArduino(QObject *parent) :
     m_positionQueryTimer.setInterval(10*1000);
 
     connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
-    m_positionUpdateTimer.setInterval(32);
+    m_positionUpdateTimer.setInterval(16);
 
     m_pantiltCurrentSpeed[Eye] = QPointF(0, 0);
     m_pantiltCurrentSpeed[Body] = QPointF(0, 0);
