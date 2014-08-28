@@ -24,6 +24,11 @@ public:
         RightGun = 2
     };
 
+    enum Speed {
+        Slow = 0,
+        Fast = 1
+    };
+
     // CalibrationData <xyOnHardware, xyOnCam>
     // CalibrationData <XY,XY'>
     typedef QPair<QPoint,QPoint> PointPair;
@@ -45,6 +50,9 @@ public:
     virtual bool startFiring(Trigger trigger) =0;
     virtual bool stopFiring(Trigger trigger) =0;
 
+    virtual Speed manualControlSpeed();
+    virtual bool setManualControlSpeed(Speed speed);
+
 protected slots:
     virtual void onParametersChanged();
 
@@ -54,6 +62,8 @@ protected:
 
     QMap<Pantilt,QTransform> m_calibrationMatrix;
     QMap<Pantilt,QTransform> m_calibrationMatrixInverted;
+
+    Speed m_manualControlSpeed;
 
     ParameterManager *m_parameterManager;
 

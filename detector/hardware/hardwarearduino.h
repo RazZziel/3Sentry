@@ -23,6 +23,7 @@ public:
     bool center(Pantilt pantilt);
     bool startFiring(Trigger trigger);
     bool stopFiring(Trigger trigger);
+    bool setManualControlSpeed(Speed speed);
 
 private:
     bool hw_updateLimits(Pantilt pantilt);
@@ -34,9 +35,9 @@ private:
     QSerialPort *m_serialPort;
     mutable QMutex m_commandMutex;
     QMap<Pantilt,QPointF> m_currentHwPosition;
+    QMap<Pantilt,QPointF> m_pantiltCurrentSpeed;
     QMap<Pantilt,QPointF> m_minHwPosition;
     QMap<Pantilt,QPointF> m_maxHwPosition;
-    QMap<Pantilt,QPointF> m_pantiltSpeed;
     QMap<Pantilt,QPointF> m_pantiltAcc;
 
     QTimer m_positionQueryTimer;

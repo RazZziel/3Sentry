@@ -156,3 +156,14 @@ QPoint Hardware::hardware2screen(Pantilt pantilt, QPoint xyOnHardware) const
 {
     return m_calibrationMatrix[pantilt].map(xyOnHardware);
 }
+
+Hardware::Speed Hardware::manualControlSpeed()
+{
+    return m_manualControlSpeed;
+}
+
+bool Hardware::setManualControlSpeed(Speed speed)
+{
+    m_manualControlSpeed = speed;
+    return true;
+}

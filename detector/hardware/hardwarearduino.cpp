@@ -2,6 +2,9 @@
 #include <QtSerialPort/QtSerialPort>
 #include <QCoreApplication>
 
+static int speedMultiplier_Slow = 5;
+static int speedMultiplier_Fast = 10;
+
 HardwareArduino::HardwareArduino(QObject *parent) :
     Hardware(parent),
     m_serialPort(new QSerialPort(this))
@@ -12,10 +15,10 @@ HardwareArduino::HardwareArduino(QObject *parent) :
     connect(&m_positionUpdateTimer, SIGNAL(timeout()), SLOT(sendCurrentPosition()));
     m_positionUpdateTimer.setInterval(32);
 
-    m_pantiltSpeed[Eye] = QPointF(0, 0);
-    m_pantiltSpeed[Body] = QPointF(0, 0);
-    m_pantiltAcc[Eye] = QPointF(-10, 10);
-    m_pantiltAcc[Body] = QPointF(-10, 10);
+    m_pantiltCurrentSpeed[Eye] = QPointF(0, 0);
+    m_pantiltCurrentSpeed[Body] = QPointF(0, 0);
+
+    setManualControlSpeed(Slow);
 }
 
 HardwareArduino::~HardwareArduino()
@@ -95,8 +98,10 @@ void HardwareArduino::sendCurrentPosition()
     {
         Pantilt pantilt = (Pantilt) i;
 
-        qreal dx = qPow(m_pantiltSpeed[pantilt].x(), 3)*m_pantiltAcc[pantilt].x();
-        qreal dy = qPow(m_pantiltSpeed[pantilt].y(), 3)*m_pantiltAcc[pantilt].y();
+        //qreal dx = qPow(m_pantiltCurrentSpeed[pantilt].x(), 3) * m_pantiltAcc[pantilt].x();
+        //qreal dy = qPow(m_pantiltCurrentSpeed[pantilt].y(), 3) * m_pantiltAcc[pantilt].y();
+        qreal dx = m_pantiltCurrentSpeed[pantilt].x() * m_pantiltAcc[pantilt].x();
+        qreal dy = m_pantiltCurrentSpeed[pantilt].y() * m_pantiltAcc[pantilt].y();
 
         QPointF newPosition = m_currentHwPosition[pantilt] + QPointF(dx, dy);
 
@@ -147,7 +152,8 @@ bool HardwareArduino::hw_updateLimits(Pantilt pantilt)
     return true;
 }
 
-bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
+bool HardwareArduino::
+currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
     x = m_currentHwPosition[pantilt].x();
     y = m_currentHwPosition[pantilt].y();
@@ -222,7 +228,7 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
 
 bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
 {
-    m_pantiltSpeed[pantilt] = QPointF(dx, dy);
+    m_pantiltCurrentSpeed[pantilt] = QPointF(dx, dy);
     return true;
 }
 
@@ -243,6 +249,25 @@ bool HardwareArduino::stopFiring(Trigger trigger)
     QByteArray payload("H");
     payload.append((quint8) trigger);
     return sendCommand(payload);
+}
+
+bool HardwareArduino::setManualControlSpeed(Speed speed)
+{
+    Hardware::setManualControlSpeed(speed);
+
+    switch (speed)
+    {
+    case Slow:
+        m_pantiltAcc[Eye] = QPointF(-speedMultiplier_Slow, speedMultiplier_Slow);
+        m_pantiltAcc[Body] = QPointF(-speedMultiplier_Slow, speedMultiplier_Slow);
+        break;
+    case Fast:
+        m_pantiltAcc[Eye] = QPointF(-speedMultiplier_Fast, speedMultiplier_Fast);
+        m_pantiltAcc[Body] = QPointF(-speedMultiplier_Fast, speedMultiplier_Fast);
+        break;
+    }
+
+    return true;
 }
 
 bool HardwareArduino::sendCommand(const QByteArray &payload, QByteArray *ret_reply) const
