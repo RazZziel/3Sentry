@@ -47,11 +47,15 @@ public:
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
     virtual bool center(Pantilt pantilt);
-    virtual bool startFiring(Trigger trigger) =0;
-    virtual bool stopFiring(Trigger trigger) =0;
+    virtual bool startFiring(Trigger trigger);
+    virtual bool stopFiring(Trigger trigger);
 
     virtual Speed manualControlSpeed();
     virtual bool setManualControlSpeed(Speed speed);
+
+protected:
+    virtual bool hw_startFiring(Trigger trigger) =0;
+    virtual bool hw_stopFiring(Trigger trigger) =0;
 
 protected slots:
     virtual void onParametersChanged();
@@ -60,12 +64,19 @@ protected:
     QPoint screen2hardware(Pantilt pantilt, QPoint xyOnScreen) const;
     QPoint hardware2screen(Pantilt pantilt, QPoint xyOnHardware) const;
 
-    QMap<Pantilt,QTransform> m_calibrationMatrix;
-    QMap<Pantilt,QTransform> m_calibrationMatrixInverted;
+    QHash<Pantilt,QTransform> m_calibrationMatrix;
+    QHash<Pantilt,QTransform> m_calibrationMatrixInverted;
+
+    QHash<Trigger,QTimer*> m_firingTimer;
+    QHash<Trigger,bool> m_hwIsFiring;
 
     Speed m_manualControlSpeed;
 
     ParameterManager *m_parameterManager;
+
+private slots:
+    void toggleTrigger();
+    void toggleTrigger(Trigger trigger);
 
 signals:
     void currentPositionChanged(Pantilt pantilt, int x, int y);

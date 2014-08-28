@@ -245,14 +245,14 @@ bool HardwareArduino::center(Pantilt pantilt)
     return targetAbsolute(pantilt, 90, 90);
 }
 
-bool HardwareArduino::startFiring(Trigger trigger)
+bool HardwareArduino::hw_startFiring(Trigger trigger)
 {
     QByteArray payload("S");
     payload.append((quint8) trigger);
     return sendCommand(payload);
 }
 
-bool HardwareArduino::stopFiring(Trigger trigger)
+bool HardwareArduino::hw_stopFiring(Trigger trigger)
 {
     QByteArray payload("H");
     payload.append((quint8) trigger);

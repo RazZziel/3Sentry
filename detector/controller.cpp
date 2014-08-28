@@ -554,12 +554,16 @@ void Controller::onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int 
 
         if (distance < m_parameterManager->value("shootTolerance").toInt())
         {
-            m_hardware->startFiring(Hardware::RightGun);
+            m_hardware->startFiring(Hardware::LeftGun);
         }
         else
         {
-            m_hardware->stopFiring(Hardware::RightGun);
+            m_hardware->stopFiring(Hardware::LeftGun);
         }
+    }
+    else
+    {
+        m_hardware->stopFiring(Hardware::LeftGun);
     }
 }
 

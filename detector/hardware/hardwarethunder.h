@@ -16,10 +16,12 @@ public:
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
-    bool startFiring(Trigger trigger);
-    bool stopFiring(Trigger trigger);
+
 
 private:
+    bool hw_startFiring(Trigger trigger);
+    bool hw_stopFiring(Trigger trigger);
+
     void movement_handler(char b0, char b1);
 
     usb_dev_handle* m_usbHandler;

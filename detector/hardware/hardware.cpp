@@ -1,6 +1,7 @@
 #include "hardware.h"
-#include <QMatrix3x3>
 #include <QMatrix>
+#include <QTimer>
+#include <QDebug>
 #include <cv.h>
 
 Hardware::Hardware(QObject *parent) :
@@ -9,6 +10,17 @@ Hardware::Hardware(QObject *parent) :
 {
     qRegisterMetaType<Pantilt>("Pantilt");
     connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
+
+    for (int i=Hardware::EyeLaser; i<=Hardware::RightGun; i++)
+    {
+        Hardware::Trigger trigger = (Hardware::Trigger) i;
+        m_firingTimer[trigger] = new QTimer(this);
+        m_firingTimer[trigger]->setInterval(50);
+        m_firingTimer[trigger]->setProperty("trigger", trigger);
+        connect(m_firingTimer[trigger], SIGNAL(timeout()), SLOT(toggleTrigger()));
+
+        m_hwIsFiring[trigger] = false;
+    }
 }
 
 void Hardware::init()
@@ -60,6 +72,70 @@ bool Hardware::center(Pantilt pantilt)
     }
 
     return targetAbsolute(pantilt, (minX+maxX)/2, (minY+maxY)/2, false);
+}
+
+bool Hardware::startFiring(Trigger trigger)
+{
+    bool ok = true;
+
+    if (trigger == EyeLaser)
+    {
+        if (!m_hwIsFiring[trigger])
+        {
+            ok = hw_startFiring(trigger);
+            if (ok) m_hwIsFiring[trigger] = true;
+        }
+    }
+    else
+    {
+        if (!m_firingTimer[trigger]->isActive())
+        {
+            m_firingTimer[trigger]->start();
+            toggleTrigger(trigger);
+        }
+    }
+
+    return ok;
+}
+
+bool Hardware::stopFiring(Trigger trigger)
+{
+    bool ok = true;
+
+    if (trigger == EyeLaser)
+    {
+        if (m_hwIsFiring[trigger])
+        {
+            ok = hw_stopFiring(trigger);
+            if (ok) m_hwIsFiring[trigger] = false;
+        }
+    }
+    else
+    {
+        if (m_firingTimer[trigger]->isActive())
+        {
+            m_firingTimer[trigger]->stop();
+
+            ok = hw_stopFiring(trigger);
+            if (ok) m_hwIsFiring[trigger] = false;
+        }
+    }
+
+    return ok;
+}
+
+void Hardware::toggleTrigger()
+{
+    Trigger trigger = (Trigger) sender()->property("trigger").toInt();
+    toggleTrigger(trigger);
+}
+
+void Hardware::toggleTrigger(Trigger trigger)
+{
+    if (m_hwIsFiring[trigger])
+        m_hwIsFiring[trigger] = !hw_stopFiring(trigger);
+    else
+        m_hwIsFiring[trigger] = hw_startFiring(trigger);
 }
 
 bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)

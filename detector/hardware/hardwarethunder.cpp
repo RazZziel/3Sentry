@@ -107,7 +107,7 @@ bool HardwareThunder::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return true;
 }
 
-bool HardwareThunder::startFiring(Trigger trigger)
+bool HardwareThunder::hw_startFiring(Trigger trigger)
 {
     switch (trigger)
     {
@@ -123,7 +123,7 @@ bool HardwareThunder::startFiring(Trigger trigger)
     return true;
 }
 
-bool HardwareThunder::stopFiring(Trigger trigger)
+bool HardwareThunder::hw_stopFiring(Trigger trigger)
 {
     switch (trigger)
     {

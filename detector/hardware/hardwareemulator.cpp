@@ -60,7 +60,7 @@ bool HardwareEmulator::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
     return true;
 }
 
-bool HardwareEmulator::startFiring(Trigger trigger)
+bool HardwareEmulator::hw_startFiring(Trigger trigger)
 {
     if (!m_firing[trigger])
     {
@@ -70,7 +70,7 @@ bool HardwareEmulator::startFiring(Trigger trigger)
     return true;
 }
 
-bool HardwareEmulator::stopFiring(Trigger trigger)
+bool HardwareEmulator::hw_stopFiring(Trigger trigger)
 {
     if (m_firing[trigger])
     {
