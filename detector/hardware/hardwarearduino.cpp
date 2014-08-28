@@ -274,35 +274,42 @@ bool HardwareArduino::sendCommand(const QByteArray &payload, QByteArray *ret_rep
 {
     QMutexLocker ml(&m_commandMutex);
 
-    if (ret_reply)
+    int retries = 3;
+    bool gotReply = false;
+    do
     {
-        m_serialPort->clear();
-    }
-
-    QByteArray data;
-    data.append((quint8) 0x02);
-    data.append(payload);
-    data.append((quint8) 0x03);
-
-    qDebug() << "<<" << payload[0] << data.toHex();
-
-    qint64 written = m_serialPort->write(data);
-    if (written != data.length())
-    {
-        qWarning() << "Could not write to serial port, written" << written
-                   << "instead of" << data.length();
-        return false;
-    }
-
-    if (ret_reply)
-    {
-        if (!readReply(ret_reply))
+        if (ret_reply)
         {
+            m_serialPort->clear();
+        }
+
+        QByteArray data;
+        data.append((quint8) 0x02);
+        data.append(payload);
+        data.append((quint8) 0x03);
+
+        qDebug() << "<<" << payload[0] << data.toHex();
+
+        qint64 written = m_serialPort->write(data);
+        if (written != data.length())
+        {
+            qWarning() << "Could not write to serial port, written" << written
+                       << "instead of" << data.length();
             return false;
         }
-    }
 
-    return true;
+        if (!ret_reply)
+        {
+            return true;
+        }
+        else
+        {
+            gotReply = readReply(ret_reply);
+        }
+    }
+    while (retries-- > 0 && !gotReply);
+
+    return gotReply;
 }
 
 bool HardwareArduino::readReply(QByteArray *ret_reply) const
