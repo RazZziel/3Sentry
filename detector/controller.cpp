@@ -281,6 +281,11 @@ bool Controller::startCalibration()
 
         QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
         qDebug() << "Pantilt" << pantilt << "First calibration point:" << newHardwarePoint;
+
+        m_hardware->targetAbsolute(pantilt,
+                                   newHardwarePoint.x(),
+                                   newHardwarePoint.y(),
+                                   false);
     }
 
     m_calibrating = true;
@@ -299,7 +304,15 @@ bool Controller::nextCalibrationPoint(Hardware::Pantilt pantilt, QPoint screenPo
 
     if (m_calibrationData[pantilt].count() < nCalibrationPoints)
     {
-        QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
+        QPoint currentHardwarePoint;
+        if (!m_hardware->currentPosition(pantilt,
+                                         (uint&)currentHardwarePoint.rx(),
+                                         (uint&)currentHardwarePoint.ry()))
+        {
+            qWarning() << "Could not get current position";
+            return false;
+        }
+
         qDebug() << "Pantilt" << pantilt << "Calibration pair added:" << currentHardwarePoint << screenPos;
         m_calibrationData[pantilt] << Hardware::PointPair(currentHardwarePoint, screenPos);
 
@@ -307,6 +320,11 @@ bool Controller::nextCalibrationPoint(Hardware::Pantilt pantilt, QPoint screenPo
         {
             QPoint newHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
             qDebug() << "Pantilt" << pantilt << "New calibration point:" << newHardwarePoint;
+
+            m_hardware->targetAbsolute(pantilt,
+                                       newHardwarePoint.x(),
+                                       newHardwarePoint.y(),
+                                       false);
         }
         else
         {
@@ -393,125 +411,88 @@ void Controller::process()
                     1, 8);
     }
 
-    if (m_calibrating)
+    if (m_processing && !m_calibrating)
     {
-        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+        QList<TrackingObject> trackingObjects;
+
+        foreach (Detector *detector, m_detectors)
         {
-            Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
-
-            if (m_calibrationData[pantilt].count() < m_calibrationHwPoints[pantilt].count())
+            if (detector->isEnabled())
             {
-                QPoint currentHardwarePoint = m_calibrationHwPoints[pantilt][m_calibrationData[pantilt].count()];
-                m_hardware->targetAbsolute(pantilt,
-                                           currentHardwarePoint.x(),
-                                           currentHardwarePoint.y(),
-                                           false);
+                // Image --> Detected objects
 
+                QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
 
-                drawCrosshair(m_currentFrame,
-                              m_currentPantiltPosition[pantilt],
-                              m_pantiltRadius[pantilt],
-                              m_pantiltColor[pantilt],
-                              1);
+                foreach (const TrackingObject &object, m_trackingObjects)
+                {
+                    cv::rectangle(m_currentFrame,
+                                  object.rect,
+                                  m_objectColors.value(detector),
+                                  1, CV_AA, 0);
+                }
 
-                cv::putText(m_currentFrame,
-                            QString("(%1,%2)")
-                            .arg(currentHardwarePoint.x())
-                            .arg(currentHardwarePoint.y())
-                            .toStdString(),
-                            cv::Point(m_currentPantiltPosition[pantilt].x,
-                                      m_currentPantiltPosition[pantilt].y + m_pantiltRadius[pantilt] + 10),
-                            cv::FONT_HERSHEY_PLAIN, 1,
-                            m_pantiltColor[pantilt],
-                            1, 8);
+                // Detected objects --> Tracking objects
+                // Tracking objects --> Potential targets
+
+                trackingObjects << findTrackingObjects(detectedObjects,
+                                                       m_trackingObjects,
+                                                       detector);
             }
+        }
+
+        m_trackingObjects = trackingObjects;
+
+
+        // Potential targets --> Current target
+
+        m_currentTarget = findCurrentTarget(m_trackingObjects);
+        if (m_currentTarget)
+        {
+            if (m_parameterManager->value("tagTargets").toBool())
+            {
+                targetAbsolute(Hardware::Eye,
+                               m_currentTarget->center.x,
+                               m_currentTarget->center.y);
+            }
+
+            if (m_parameterManager->value("aimTargets").toBool())
+            {
+                targetAbsolute(Hardware::Body,
+                               m_currentTarget->center.x,
+                               m_currentTarget->center.y);
+            }
+        }
+
+
+        // Draw all tracking objects
+
+        qulonglong currentTargetId = 0;
+        if (m_currentTarget)
+            currentTargetId = m_currentTarget->id;
+
+        foreach (const TrackingObject &object, m_trackingObjects)
+        {
+            drawTrackingObject(m_currentFrame,
+                               object,
+                               object.id == currentTargetId);
         }
     }
     else
     {
-        if (m_processing)
-        {
-            QList<TrackingObject> trackingObjects;
-
-            foreach (Detector *detector, m_detectors)
-            {
-                if (detector->isEnabled())
-                {
-                    // Image --> Detected objects
-
-                    QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
-
-                    foreach (const TrackingObject &object, m_trackingObjects)
-                    {
-                        cv::rectangle(m_currentFrame,
-                                      object.rect,
-                                      m_objectColors.value(detector),
-                                      1, CV_AA, 0);
-                    }
-
-                    // Detected objects --> Tracking objects
-                    // Tracking objects --> Potential targets
-
-                    trackingObjects << findTrackingObjects(detectedObjects,
-                                                           m_trackingObjects,
-                                                           detector);
-                }
-            }
-
-            m_trackingObjects = trackingObjects;
+        m_trackingObjects.clear();
+    }
 
 
-            // Potential targets --> Current target
+    // Draw hardware state
 
-            m_currentTarget = findCurrentTarget(m_trackingObjects);
-            if (m_currentTarget)
-            {
-                if (m_parameterManager->value("tagTargets").toBool())
-                {
-                    targetAbsolute(Hardware::Eye,
-                                   m_currentTarget->center.x,
-                                   m_currentTarget->center.y);
-                }
-
-                if (m_parameterManager->value("aimTargets").toBool())
-                {
-                    targetAbsolute(Hardware::Body,
-                                   m_currentTarget->center.x,
-                                   m_currentTarget->center.y);
-                }
-            }
-
-
-            // Draw all tracking objects
-
-            qulonglong currentTargetId = 0;
-            if (m_currentTarget)
-                currentTargetId = m_currentTarget->id;
-
-            foreach (const TrackingObject &object, m_trackingObjects)
-            {
-                drawTrackingObject(m_currentFrame,
-                                   object,
-                                   object.id == currentTargetId);
-            }
-        }
-        else
-        {
-            m_trackingObjects.clear();
-        }
-
-
-        // Draw hardware state
-
-        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
-        {
-            Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
-            drawCrosshair(m_currentFrame,
-                          m_currentPantiltPosition[pantilt],
-                          m_pantiltRadius[pantilt],
-                          m_pantiltColor[pantilt],
-                          1);
-        }
+    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        drawCrosshair(m_currentFrame,
+                      m_currentPantiltPosition[pantilt],
+                      m_pantiltRadius[pantilt],
+                      m_pantiltColor[pantilt],
+                      1);
     }
 
 
