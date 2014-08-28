@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QThread>
 #include <QLoggingCategory>
+#include <QHash>
+#include <QDateTime>
 
 #include "parametermanager.h"
 
@@ -47,6 +49,8 @@ private:
     char m_body_y_axis;
     char m_laser_x_axis;
     char m_laser_y_axis;
+
+    QHash<int,QDateTime> m_doubleClickTimers;
 };
 
 #endif // SENTRYINPUT_H

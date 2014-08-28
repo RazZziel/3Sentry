@@ -464,7 +464,10 @@ void Controller::process()
         }
         else
         {
-            m_hardware->stopFiring(Hardware::EyeLaser);
+            if (m_parameterManager->value("tagTargets").toBool())
+            {
+                m_hardware->stopFiring(Hardware::EyeLaser);
+            }
         }
 
 

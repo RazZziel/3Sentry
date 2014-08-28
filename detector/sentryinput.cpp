@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include <QDebug>
+#include <QDateTime>
 
 #define MAX_JOY 1500
 
@@ -22,7 +23,7 @@ SentryInput::SentryInput(Controller *controller) :
     // Resources:
     //   https://code.google.com/p/joypick/
 
-    cat.setEnabled(QtDebugMsg, false);
+    //cat.setEnabled(QtDebugMsg, false);
 
     m_parameterManager->init();
 
@@ -40,42 +41,56 @@ void SentryInput::run()
             {
             case SDL_JOYBUTTONDOWN:
                 qDebug(cat) << "Pushed button" << event.jbutton.button;
-                if(event.jbutton.button == m_left_fire_button)
+                if (event.jbutton.button == m_left_fire_button)
                 {
                     m_controller->startFiring(Hardware::LeftGun);
                 }
-                else if(event.jbutton.button == m_right_fire_button)
+                else if (event.jbutton.button == m_right_fire_button)
                 {
                     m_controller->startFiring(Hardware::RightGun);
                 }
-                else if(event.jbutton.button == m_laser_button)
+                else if (event.jbutton.button == m_laser_button)
                 {
                     m_controller->startFiring(Hardware::EyeLaser);
                 }
-                else if(event.jbutton.button == 10)
+                else if (event.jbutton.button == 10)
                 {
                     m_controller->hardware()->center(Hardware::Body);
                 }
-                else if(event.jbutton.button == 11)
+                else if (event.jbutton.button == 11)
                 {
                     m_controller->hardware()->center(Hardware::Eye);
                 }
                 break;
 
             case SDL_JOYBUTTONUP:
-                qDebug(cat) << "Released button" << event.jbutton.button;
-                if(event.jbutton.button == m_left_fire_button)
+            {
+                bool doubleClick = (m_doubleClickTimers[event.jbutton.button].isValid() &&
+                        m_doubleClickTimers[event.jbutton.button].msecsTo(QDateTime::currentDateTime()) <= 300);
+
+                qDebug(cat) << "Released button" << event.jbutton.button
+                            << (doubleClick
+                                ? "(double click)"
+                                : "");
+
+                if (!doubleClick)
                 {
-                    m_controller->stopFiring(Hardware::LeftGun);
+                    if (event.jbutton.button == m_left_fire_button)
+                    {
+                        m_controller->stopFiring(Hardware::LeftGun);
+                    }
+                    else if (event.jbutton.button == m_right_fire_button)
+                    {
+                        m_controller->stopFiring(Hardware::RightGun);
+                    }
+                    else if (event.jbutton.button == m_laser_button)
+                    {
+                        m_controller->stopFiring(Hardware::EyeLaser);
+                    }
                 }
-                if(event.jbutton.button == m_right_fire_button)
-                {
-                    m_controller->stopFiring(Hardware::RightGun);
-                }
-                if(event.jbutton.button == m_laser_button)
-                {
-                    m_controller->stopFiring(Hardware::EyeLaser);
-                }
+
+                m_doubleClickTimers[event.jbutton.button] = QDateTime::currentDateTime();
+            }
                 break;
 
             case SDL_JOYAXISMOTION:
@@ -83,7 +98,7 @@ void SentryInput::run()
                 qreal movement = 0;
                 if (qAbs(event.jaxis.value) > m_dead_zone_radius)
                 {
-                    if(qAbs(event.jaxis.value) > m_max_joy)
+                    if (qAbs(event.jaxis.value) > m_max_joy)
                     {
                         m_max_joy = qAbs(event.jaxis.value);
                     }
