@@ -26,6 +26,7 @@ public:
     bool setManualControlSpeed(Speed speed);
 
 private:
+    bool hw_targetAbsolute(Pantilt pantilt, uint x, uint y);
     bool hw_updateLimits(Pantilt pantilt);
     bool hw_updateCurrentPosition(Pantilt pantilt);
 
@@ -34,7 +35,8 @@ private:
 
     QSerialPort *m_serialPort;
     mutable QMutex m_commandMutex;
-    QMap<Pantilt,QPointF> m_currentHwPosition;
+    QMap<Pantilt,QPoint> m_currentHwPosition;
+    QMap<Pantilt,QPointF> m_wantedHwPosition;
     QMap<Pantilt,QPointF> m_pantiltCurrentSpeed;
     QMap<Pantilt,QPointF> m_minHwPosition;
     QMap<Pantilt,QPointF> m_maxHwPosition;

@@ -82,7 +82,7 @@ void HardwareArduino::updateCurrentPosition()
 
         if (hw_updateCurrentPosition(pantilt))
         {
-            QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt].toPoint());
+            QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt]);
             emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
         }
         else
@@ -103,16 +103,32 @@ void HardwareArduino::sendCurrentPosition()
         qreal dx = m_pantiltCurrentSpeed[pantilt].x() * m_pantiltAcc[pantilt].x();
         qreal dy = m_pantiltCurrentSpeed[pantilt].y() * m_pantiltAcc[pantilt].y();
 
-        QPointF newPosition = m_currentHwPosition[pantilt] + QPointF(dx, dy);
+        QPointF newHwPosition = m_wantedHwPosition[pantilt] + QPointF(dx, dy);
 
-        newPosition.rx() = qMax(m_minHwPosition[pantilt].x(), newPosition.x());
-        newPosition.rx() = qMin(m_maxHwPosition[pantilt].x(), newPosition.x());
-        newPosition.ry() = qMax(m_minHwPosition[pantilt].y(), newPosition.y());
-        newPosition.ry() = qMin(m_maxHwPosition[pantilt].y(), newPosition.y());
+        newHwPosition.rx() = qMax(m_minHwPosition[pantilt].x(), newHwPosition.x());
+        newHwPosition.rx() = qMin(m_maxHwPosition[pantilt].x(), newHwPosition.x());
+        newHwPosition.ry() = qMax(m_minHwPosition[pantilt].y(), newHwPosition.y());
+        newHwPosition.ry() = qMin(m_maxHwPosition[pantilt].y(), newHwPosition.y());
 
-        targetAbsolute(pantilt,
-                       newPosition.x(),
-                       newPosition.y(), false);
+        m_wantedHwPosition[pantilt] = newHwPosition;
+
+        if (m_currentHwPosition[pantilt] != newHwPosition)
+        {
+            if (hw_targetAbsolute(pantilt,
+                                  newHwPosition.x(),
+                                  newHwPosition.y()))
+            {
+                m_currentHwPosition[pantilt] = newHwPosition.toPoint();
+            }
+
+            QPoint screenPosition = hardware2screen(pantilt, m_currentHwPosition[pantilt]);
+            emit currentPositionChanged(pantilt, screenPosition.x(), screenPosition.y());
+
+            qDebug() << "Pantilt" << pantilt
+                     << "targeting:"
+                     << "hw=" << newHwPosition
+                     << "screen=" << screenPosition;
+        }
     }
 }
 
@@ -123,6 +139,16 @@ bool HardwareArduino::getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY
     maxX = m_maxHwPosition[pantilt].x();
     maxY = m_maxHwPosition[pantilt].y();
     return true;
+}
+
+
+bool HardwareArduino::hw_targetAbsolute(Pantilt pantilt, uint x, uint y)
+{
+    QByteArray payload("A");
+    payload.append((quint8) pantilt);
+    payload.append((quint8) x);
+    payload.append((quint8) y);
+    return sendCommand(payload);
 }
 
 bool HardwareArduino::hw_updateLimits(Pantilt pantilt)
@@ -184,7 +210,7 @@ bool HardwareArduino::hw_updateCurrentPosition(Pantilt pantilt)
              << "hw=" << hardwarePoint
              << "screen=" << screeenPoint;
 
-    m_currentHwPosition[pantilt] = QPointF(hardwarePoint.x(), hardwarePoint.y());
+    m_currentHwPosition[pantilt] = QPoint(hardwarePoint.x(), hardwarePoint.y());
 
     return true;
 }
@@ -203,27 +229,9 @@ bool HardwareArduino::targetAbsolute(Pantilt pantilt, uint x, uint y, bool conve
         screenPosition = hardware2screen(pantilt, hwPosition);
     }
 
-    if (hwPosition != m_currentHwPosition[pantilt].toPoint())
-    {
-        emit currentPositionChanged(pantilt, screenPosition.x(), screenPosition.y());
+    m_wantedHwPosition[pantilt] = hwPosition;
 
-        m_currentHwPosition[pantilt] = hwPosition;
-
-        qDebug() << "Pantilt" << pantilt
-                 << "targeting:"
-                 << "hw=" << hwPosition
-                 << "screen=" << screenPosition;
-
-        QByteArray payload("A");
-        payload.append((quint8) pantilt);
-        payload.append((quint8) hwPosition.x());
-        payload.append((quint8) hwPosition.y());
-        return sendCommand(payload);
-    }
-    else
-    {
-        return true;
-    }
+    return true;
 }
 
 bool HardwareArduino::targetRelative(Pantilt pantilt, qreal dx, qreal dy)
