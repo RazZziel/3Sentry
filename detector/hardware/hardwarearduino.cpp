@@ -28,8 +28,15 @@ HardwareArduino::~HardwareArduino()
 
 ParameterList HardwareArduino::createParameters() const
 {
+    QVariantMap serialPorts;
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+    {
+        QString name = QString("%1 (%2)").arg(info.description()).arg(info.portName());
+        serialPorts.insert(name, info.systemLocation());
+    }
+
     ParameterList list = Hardware::createParameters();
-    list << Parameter("portName", tr("Port name"), Parameter::String, "/dev/ttyUSB0");
+    list << Parameter::selection("portName", tr("Port name"), serialPorts);
     return list;
 }
 
