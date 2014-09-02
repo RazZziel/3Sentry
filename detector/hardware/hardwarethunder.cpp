@@ -121,6 +121,8 @@ bool HardwareThunder::hw_startFiring(Trigger trigger)
     case LeftLaser:
     case RightLaser:
         break;
+    default:
+        break;
     }
 
     return true;
@@ -139,6 +141,8 @@ bool HardwareThunder::hw_stopFiring(Trigger trigger)
     case LeftLaser:
     case RightLaser:
         //movement_handler(2, 0);
+        break;
+    default:
         break;
     }
 

@@ -32,6 +32,14 @@ public:
         Fast = 1
     };
 
+    enum FireMode {
+        Pulse = 0,
+        FullyAutomatic = 1,
+        Burst = 2,
+        SingleShot = 3,
+        Toggle = 4
+    };
+
     // CalibrationData <xyOnHardware, xyOnCam>
     // CalibrationData <XY,XY'>
     typedef QPair<QPoint,QPoint> PointPair;
@@ -70,8 +78,10 @@ protected:
     QHash<Pantilt,QTransform> m_calibrationMatrix;
     QHash<Pantilt,QTransform> m_calibrationMatrixInverted;
 
+    QHash<Trigger,FireMode> m_fireMode;
     QHash<Trigger,QTimer*> m_firingTimer;
     QHash<Trigger,bool> m_hwIsFiring;
+    QHash<Trigger,int> m_burst;
 
     Speed m_manualControlSpeed;
 

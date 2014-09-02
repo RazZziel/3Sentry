@@ -20,6 +20,7 @@ Hardware::Hardware(QObject *parent) :
         connect(m_firingTimer[trigger], SIGNAL(timeout()), SLOT(toggleTrigger()));
 
         m_hwIsFiring[trigger] = false;
+        m_fireMode[EyeLaser] = Pulse;
     }
 }
 
@@ -42,8 +43,23 @@ QString Hardware::settingsGroup()
 ParameterList Hardware::createParameters() const
 {
     ParameterList list;
-    list << Parameter(QString("calibration/%1").arg(Eye), tr("Eye calibration matrix"), Parameter::Unknown, "")
-         << Parameter(QString("calibration/%1").arg(Body), tr("Body calibration matrix"), Parameter::Unknown, "");
+    list << Parameter(QString("pantilt/%1/calibration").arg(Eye), tr("Eye calibration matrix"), Parameter::Unknown, "")
+         << Parameter(QString("pantilt/%1/calibration").arg(Body), tr("Body calibration matrix"), Parameter::Unknown, "");
+
+    QVariantMap fireModes;
+    fireModes.insert(tr("Pulse"), Pulse);
+    fireModes.insert(tr("Fully automatic"), FullyAutomatic);
+    fireModes.insert(tr("Burst"), Burst);
+    fireModes.insert(tr("Single shot"), SingleShot);
+    fireModes.insert(tr("Toggle"), Toggle);
+
+    for (int i=Hardware::EyeLaser; i<Hardware::__Trigger_Size__; i++)
+    {
+        list << Parameter::selection(QString("trigger/%1/mode").arg(i),
+                                     tr("Trigger %1 mode").arg(i),
+                                     fireModes, Pulse);
+    }
+
     return list;
 }
 
@@ -56,9 +72,15 @@ void Hardware::onParametersChanged()
 {
     for (int i=Hardware::Body; i<=Hardware::Eye; i++)
     {
-        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        Pantilt pantilt = (Pantilt) i;
         m_calibrationMatrix[pantilt] = m_parameterManager->value(QString("calibration/%1").arg(pantilt)).value<QTransform>();
         m_calibrationMatrixInverted[pantilt] = m_calibrationMatrix[pantilt].inverted();
+    }
+
+    for (int i=Hardware::EyeLaser; i<Hardware::__Trigger_Size__; i++)
+    {
+        Trigger trigger = (Trigger) i;
+        m_fireMode[trigger] = (FireMode) m_parameterManager->value(QString("trigger/%1/mode").arg(trigger)).toInt();
     }
 }
 
@@ -78,7 +100,7 @@ bool Hardware::startFiring(Trigger trigger)
 {
     bool ok = true;
 
-    if (trigger == EyeLaser)
+    if (m_fireMode[trigger] == Pulse)
     {
         if (!m_hwIsFiring[trigger])
         {
@@ -86,13 +108,21 @@ bool Hardware::startFiring(Trigger trigger)
             if (ok) m_hwIsFiring[trigger] = true;
         }
     }
-    else
+    else if (m_fireMode[trigger] == FullyAutomatic ||
+             m_fireMode[trigger] == Burst ||
+             m_fireMode[trigger] == SingleShot)
     {
+        m_burst[trigger] = 0;
+
         if (!m_firingTimer[trigger]->isActive())
         {
             m_firingTimer[trigger]->start();
             toggleTrigger(trigger);
         }
+    }
+    else if (m_fireMode[trigger] == Toggle)
+    {
+        toggleTrigger(trigger);
     }
 
     return ok;
@@ -102,7 +132,7 @@ bool Hardware::stopFiring(Trigger trigger)
 {
     bool ok = true;
 
-    if (trigger == EyeLaser)
+    if (m_fireMode[trigger] == Pulse)
     {
         if (m_hwIsFiring[trigger])
         {
@@ -110,7 +140,7 @@ bool Hardware::stopFiring(Trigger trigger)
             if (ok) m_hwIsFiring[trigger] = false;
         }
     }
-    else
+    else if (m_fireMode[trigger] == FullyAutomatic)
     {
         if (m_firingTimer[trigger]->isActive())
         {
@@ -136,6 +166,19 @@ void Hardware::toggleTrigger(Trigger trigger)
         m_hwIsFiring[trigger] = !hw_stopFiring(trigger);
     else
         m_hwIsFiring[trigger] = hw_startFiring(trigger);
+
+    if (m_fireMode[trigger] == SingleShot && !m_hwIsFiring[trigger])
+    {
+        m_firingTimer[trigger]->stop();
+    }
+    else if (m_fireMode[trigger] == Burst && !m_hwIsFiring[trigger])
+    {
+        ++m_burst[trigger];
+        if (m_burst[trigger] >= 3)
+        {
+            m_firingTimer[trigger]->stop();
+        }
+    }
 }
 
 bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)
