@@ -6,6 +6,7 @@
 #include <QLoggingCategory>
 #include <QHash>
 #include <QDateTime>
+#include <SDL_joystick.h>
 
 #include "parametermanager.h"
 
@@ -30,27 +31,32 @@ private slots:
     void onParametersChanged();
 
 private:
+    struct Joystick {
+        Joystick(SDL_Joystick *joystick);
+
+        int index;
+
+        int m_max_joy;
+
+        char m_left_fire_button;
+        char m_right_fire_button;
+        char m_laser_button;
+
+        char m_body_x_axis;
+        char m_body_y_axis;
+        char m_laser_x_axis;
+        char m_laser_y_axis;
+
+        QHash<int,QDateTime> m_doubleClickTimers;
+    };
+
     Controller *m_controller;
     ParameterManager *m_parameterManager;
     QLoggingCategory cat;
 
+    QHash<SDL_JoystickID, Joystick*> m_joysticks;
+
     int m_dead_zone_radius;
-    int m_max_joy;
-    qreal m_axis_body_x;
-    qreal m_axis_body_y;
-    qreal m_axis_laser_x;
-    qreal m_axis_laser_y;
-
-    char m_left_fire_button;
-    char m_right_fire_button;
-    char m_laser_button;
-
-    char m_body_x_axis;
-    char m_body_y_axis;
-    char m_laser_x_axis;
-    char m_laser_y_axis;
-
-    QHash<int,QDateTime> m_doubleClickTimers;
 };
 
 #endif // SENTRYINPUT_H

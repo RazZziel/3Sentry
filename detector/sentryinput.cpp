@@ -14,11 +14,7 @@ SentryInput::SentryInput(Controller *controller) :
     m_controller(controller),
     m_parameterManager(new ParameterManager(this, this)),
     cat("SentryInput"),
-    m_dead_zone_radius(5),
-    m_axis_body_x(0),
-    m_axis_body_y(0),
-    m_axis_laser_x(0),
-    m_axis_laser_y(0)
+    m_dead_zone_radius(5)
 {
     // Resources:
     //   https://code.google.com/p/joypick/
@@ -39,17 +35,50 @@ void SentryInput::run()
         {
             switch (event.type)
             {
+            case SDL_JOYDEVICEADDED:
+            {
+                SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
+                if (joystick)
+                {
+                    m_joysticks.insert(SDL_JoystickInstanceID(joystick),
+                                       new Joystick(joystick));
+                }
+                else
+                {
+                    qWarning() << "Could not open joystick" << event.jdevice.which;
+                }
+            }
+                break;
+
+            case SDL_JOYDEVICEREMOVED:
+                qDebug() << "Removed joystick" << event.jdevice.which;
+
+                if (m_joysticks.contains(event.jdevice.which))
+                {
+                    delete m_joysticks[event.jdevice.which];
+                    m_joysticks.remove(event.jdevice.which);
+                }
+                else
+                {
+                    qWarning() << "But it does not exist?";
+                }
+                break;
+
             case SDL_JOYBUTTONDOWN:
+            {
+                Joystick *joystick = m_joysticks[event.jbutton.which];
+
                 qDebug(cat) << "Pushed button" << event.jbutton.button;
-                if (event.jbutton.button == m_left_fire_button)
+
+                if (event.jbutton.button == joystick->m_left_fire_button)
                 {
                     m_controller->startFiring(Hardware::LeftGun);
                 }
-                else if (event.jbutton.button == m_right_fire_button)
+                else if (event.jbutton.button == joystick->m_right_fire_button)
                 {
                     m_controller->startFiring(Hardware::RightGun);
                 }
-                else if (event.jbutton.button == m_laser_button)
+                else if (event.jbutton.button == joystick->m_laser_button)
                 {
                     m_controller->startFiring(Hardware::EyeLaser);
                 }
@@ -61,12 +90,15 @@ void SentryInput::run()
                 {
                     m_controller->hardware()->center(Hardware::Eye);
                 }
+            }
                 break;
 
             case SDL_JOYBUTTONUP:
             {
-                bool doubleClick = (m_doubleClickTimers[event.jbutton.button].isValid() &&
-                        m_doubleClickTimers[event.jbutton.button].msecsTo(QDateTime::currentDateTime()) <= 300);
+                Joystick *joystick = m_joysticks[event.jbutton.which];
+
+                bool doubleClick = (joystick->m_doubleClickTimers[event.jbutton.button].isValid() &&
+                        joystick->m_doubleClickTimers[event.jbutton.button].msecsTo(QDateTime::currentDateTime()) <= 300);
 
                 qDebug(cat) << "Released button" << event.jbutton.button
                             << (doubleClick
@@ -75,55 +107,64 @@ void SentryInput::run()
 
                 if (!doubleClick)
                 {
-                    if (event.jbutton.button == m_left_fire_button)
+                    if (event.jbutton.button == joystick->m_left_fire_button)
                     {
                         m_controller->stopFiring(Hardware::LeftGun);
                     }
-                    else if (event.jbutton.button == m_right_fire_button)
+                    else if (event.jbutton.button == joystick->m_right_fire_button)
                     {
                         m_controller->stopFiring(Hardware::RightGun);
                     }
-                    else if (event.jbutton.button == m_laser_button)
+                    else if (event.jbutton.button == joystick->m_laser_button)
                     {
                         m_controller->stopFiring(Hardware::EyeLaser);
                     }
                 }
 
-                m_doubleClickTimers[event.jbutton.button] = QDateTime::currentDateTime();
+                joystick->m_doubleClickTimers[event.jbutton.button] = QDateTime::currentDateTime();
             }
                 break;
 
             case SDL_JOYAXISMOTION:
             {
+                Joystick *joystick = m_joysticks[event.jbutton.which];
+
                 qreal movement = 0;
                 if (qAbs(event.jaxis.value) > m_dead_zone_radius)
                 {
-                    if (qAbs(event.jaxis.value) > m_max_joy)
+                    if (qAbs(event.jaxis.value) > joystick->m_max_joy)
                     {
-                        m_max_joy = qAbs(event.jaxis.value);
+                        joystick->m_max_joy = qAbs(event.jaxis.value);
                     }
 
-                    movement = (qreal)event.jaxis.value / (qreal)m_max_joy;
+                    movement = (qreal)event.jaxis.value / (qreal)joystick->m_max_joy;
                 }
 
-                if (event.jaxis.axis == m_body_x_axis)
+                qreal m_axis_body_x;
+                qreal m_axis_body_y;
+                qreal m_axis_laser_x;
+                qreal m_axis_laser_y;
+
+                if (event.jaxis.axis == joystick->m_body_x_axis)
                 {
                     m_axis_body_x = movement;
                 }
-                else if (event.jaxis.axis == m_body_y_axis)
+                else if (event.jaxis.axis == joystick->m_body_y_axis)
                 {
                     m_axis_body_y = movement;
                 }
-                else if (event.jaxis.axis == m_laser_x_axis)
+                else if (event.jaxis.axis == joystick->m_laser_x_axis)
                 {
                     m_axis_laser_x = movement;
                 }
-                else if (event.jaxis.axis == m_laser_y_axis)
+                else if (event.jaxis.axis == joystick->m_laser_y_axis)
                 {
                     m_axis_laser_y = movement;
                 }
 
-                qDebug(cat) << event.jaxis.axis << ":" << event.jaxis.value << "=" << movement;
+                qDebug(cat) << event.jaxis.axis
+                            << ":" << event.jaxis.value
+                            << "=" << movement;
 
                 if (event.jaxis.axis == 0 || event.jaxis.axis == 1)
                 {
@@ -147,60 +188,6 @@ void SentryInput::init()
         qWarning(cat) << "Couldn't initialize SDL:" << SDL_GetError();
         return;
     }
-
-    qDebug(cat) << SDL_NumJoysticks() << "controllers were found";
-
-    for (int i=0; i<SDL_NumJoysticks(); ++i)
-    {
-        SDL_Joystick* j = SDL_JoystickOpen(i);
-        char guid[255];
-        SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(j), guid, 255);
-        qDebug(cat) << "   [" << guid << "]" << SDL_JoystickName(j);
-
-        if (!strcmp(guid, "030000004c050000c405000011010000"))
-        {
-            // Sony Computer Entertainment Wireless Controller
-
-            m_left_fire_button = 6;
-            m_right_fire_button = 7;
-            m_laser_button = 1;
-
-            m_body_x_axis = 0;
-            m_body_y_axis = 1;
-            m_laser_x_axis = 2;
-            m_laser_y_axis = 5;
-        }
-        else if (!strcmp(guid, "030000005e0400008e02000014010000"))
-        {
-            // Microsoft X-Box 360 pad
-
-            m_left_fire_button = 6;
-            m_right_fire_button = 4;
-            m_laser_button = 5;
-
-            m_body_x_axis = 0;
-            m_body_y_axis = 1;
-            m_laser_x_axis = 3;
-            m_laser_y_axis = 4;
-        }
-        else // if (!strcnp(guid, "030000006d04000018c2000010010000"))
-        {
-            // Logitech Logitech RumblePad 2 USB
-
-            m_left_fire_button = 6;
-            m_right_fire_button = 7;
-            m_laser_button = 1;
-
-            m_body_x_axis = 0;
-            m_body_y_axis = 1;
-            m_laser_x_axis = 2;
-            m_laser_y_axis = 3;
-        }
-
-        break; // TODO: Support multiple joysticks
-    }
-
-    m_max_joy = MAX_JOY;
 }
 
 ParameterManager *SentryInput::parameterManager()
@@ -233,3 +220,55 @@ void SentryInput::onParametersChanged()
 }
 
 
+SentryInput::Joystick::Joystick(SDL_Joystick *joystick)
+{
+    char guid[255];
+    SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, 255);
+
+    qDebug() << "Added joystick"
+             << "[" << guid << "]"
+             << SDL_JoystickName(joystick)
+             << "with ID" << SDL_JoystickInstanceID(joystick);
+
+    if (!strcmp(guid, "030000004c050000c405000011010000"))
+    {
+        // Sony Computer Entertainment Wireless Controller
+
+        m_left_fire_button = 6;
+        m_right_fire_button = 7;
+        m_laser_button = 1;
+
+        m_body_x_axis = 0;
+        m_body_y_axis = 1;
+        m_laser_x_axis = 2;
+        m_laser_y_axis = 5;
+    }
+    else if (!strcmp(guid, "030000005e0400008e02000014010000"))
+    {
+        // Microsoft X-Box 360 pad
+
+        m_left_fire_button = 6;
+        m_right_fire_button = 4;
+        m_laser_button = 5;
+
+        m_body_x_axis = 0;
+        m_body_y_axis = 1;
+        m_laser_x_axis = 3;
+        m_laser_y_axis = 4;
+    }
+    else // else if (!strcmp(guid, "030000006d04000018c2000010010000"))
+    {
+        // Logitech Logitech RumblePad 2 USB
+
+        m_left_fire_button = 6;
+        m_right_fire_button = 7;
+        m_laser_button = 1;
+
+        m_body_x_axis = 0;
+        m_body_y_axis = 1;
+        m_laser_x_axis = 2;
+        m_laser_y_axis = 3;
+    }
+
+    m_max_joy = MAX_JOY;
+}

@@ -110,22 +110,23 @@ void HardwareArduino::sendCurrentPosition()
         qreal dx = m_pantiltCurrentSpeed[pantilt].x() * m_pantiltAcc[pantilt].x();
         qreal dy = m_pantiltCurrentSpeed[pantilt].y() * m_pantiltAcc[pantilt].y();
 
-        QPointF newHwPosition = m_wantedHwPosition[pantilt] + QPointF(dx, dy);
+        QPointF newHwPositionF = m_wantedHwPosition[pantilt] + QPointF(dx, dy);
 
-        newHwPosition.rx() = qMax(m_minHwPosition[pantilt].x(), newHwPosition.x());
-        newHwPosition.rx() = qMin(m_maxHwPosition[pantilt].x(), newHwPosition.x());
-        newHwPosition.ry() = qMax(m_minHwPosition[pantilt].y(), newHwPosition.y());
-        newHwPosition.ry() = qMin(m_maxHwPosition[pantilt].y(), newHwPosition.y());
+        newHwPositionF.rx() = qMax(m_minHwPosition[pantilt].x(), newHwPositionF.x());
+        newHwPositionF.rx() = qMin(m_maxHwPosition[pantilt].x(), newHwPositionF.x());
+        newHwPositionF.ry() = qMax(m_minHwPosition[pantilt].y(), newHwPositionF.y());
+        newHwPositionF.ry() = qMin(m_maxHwPosition[pantilt].y(), newHwPositionF.y());
 
-        m_wantedHwPosition[pantilt] = newHwPosition;
+        m_wantedHwPosition[pantilt] = newHwPositionF;
 
+        QPoint newHwPosition = newHwPositionF.toPoint();
         if (m_currentHwPosition[pantilt] != newHwPosition)
         {
             if (hw_targetAbsolute(pantilt,
                                   newHwPosition.x(),
                                   newHwPosition.y()))
             {
-                m_currentHwPosition[pantilt] = newHwPosition.toPoint();
+                m_currentHwPosition[pantilt] = newHwPosition;
             }
 
             QPoint screenPosition = hardware2screen(pantilt, m_currentHwPosition[pantilt]);
@@ -133,7 +134,7 @@ void HardwareArduino::sendCurrentPosition()
 
             qDebug() << "Pantilt" << pantilt
                      << "targeting:"
-                     << "hw=" << newHwPosition
+                     << "hw=" << newHwPositionF
                      << "screen=" << screenPosition;
         }
     }
