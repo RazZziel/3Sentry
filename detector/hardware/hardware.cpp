@@ -14,13 +14,7 @@ Hardware::Hardware(QObject *parent) :
     for (int i=Hardware::EyeLaser; i<Hardware::__Trigger_Size__; i++)
     {
         Hardware::Trigger trigger = (Hardware::Trigger) i;
-        m_firingTimer[trigger] = new QTimer(this);
-        m_firingTimer[trigger]->setInterval(50);
-        m_firingTimer[trigger]->setProperty("trigger", trigger);
-        connect(m_firingTimer[trigger], SIGNAL(timeout()), SLOT(toggleTrigger()));
-
-        m_hwIsFiring[trigger] = false;
-        m_fireMode[EyeLaser] = Pulse;
+        m_triggers[trigger] = new TehTrigger(trigger, this);
     }
 }
 
@@ -80,7 +74,7 @@ void Hardware::onParametersChanged()
     for (int i=Hardware::EyeLaser; i<Hardware::__Trigger_Size__; i++)
     {
         Trigger trigger = (Trigger) i;
-        m_fireMode[trigger] = (FireMode) m_parameterManager->value(QString("trigger/%1/mode").arg(trigger)).toInt();
+        m_triggers[trigger]->setFireMode((FireMode) m_parameterManager->value(QString("trigger/%1/mode").arg(trigger)).toInt());
     }
 }
 
@@ -98,87 +92,12 @@ bool Hardware::center(Pantilt pantilt)
 
 bool Hardware::startFiring(Trigger trigger)
 {
-    bool ok = true;
-
-    if (m_fireMode[trigger] == Pulse)
-    {
-        if (!m_hwIsFiring[trigger])
-        {
-            ok = hw_startFiring(trigger);
-            if (ok) m_hwIsFiring[trigger] = true;
-        }
-    }
-    else if (m_fireMode[trigger] == FullyAutomatic ||
-             m_fireMode[trigger] == Burst ||
-             m_fireMode[trigger] == SingleShot)
-    {
-        m_burst[trigger] = 0;
-
-        if (!m_firingTimer[trigger]->isActive())
-        {
-            m_firingTimer[trigger]->start();
-            toggleTrigger(trigger);
-        }
-    }
-    else if (m_fireMode[trigger] == Toggle)
-    {
-        toggleTrigger(trigger);
-    }
-
-    return ok;
+    return m_triggers[trigger]->startFiring();
 }
 
 bool Hardware::stopFiring(Trigger trigger)
 {
-    bool ok = true;
-
-    if (m_fireMode[trigger] == Pulse)
-    {
-        if (m_hwIsFiring[trigger])
-        {
-            ok = hw_stopFiring(trigger);
-            if (ok) m_hwIsFiring[trigger] = false;
-        }
-    }
-    else if (m_fireMode[trigger] == FullyAutomatic)
-    {
-        if (m_firingTimer[trigger]->isActive())
-        {
-            m_firingTimer[trigger]->stop();
-
-            ok = hw_stopFiring(trigger);
-            if (ok) m_hwIsFiring[trigger] = false;
-        }
-    }
-
-    return ok;
-}
-
-void Hardware::toggleTrigger()
-{
-    Trigger trigger = (Trigger) sender()->property("trigger").toInt();
-    toggleTrigger(trigger);
-}
-
-void Hardware::toggleTrigger(Trigger trigger)
-{
-    if (m_hwIsFiring[trigger])
-        m_hwIsFiring[trigger] = !hw_stopFiring(trigger);
-    else
-        m_hwIsFiring[trigger] = hw_startFiring(trigger);
-
-    if (m_fireMode[trigger] == SingleShot && !m_hwIsFiring[trigger])
-    {
-        m_firingTimer[trigger]->stop();
-    }
-    else if (m_fireMode[trigger] == Burst && !m_hwIsFiring[trigger])
-    {
-        ++m_burst[trigger];
-        if (m_burst[trigger] >= 3)
-        {
-            m_firingTimer[trigger]->stop();
-        }
-    }
+    return m_triggers[trigger]->stopFiring();
 }
 
 bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationData)
@@ -285,4 +204,101 @@ bool Hardware::setManualControlSpeed(Speed speed)
 {
     m_manualControlSpeed = speed;
     return true;
+}
+
+TehTrigger::TehTrigger(Hardware::Trigger trigger, Hardware *hardware) :
+    QObject(hardware),
+    m_trigger(trigger),
+    m_hardware(hardware)
+{
+    m_firingTimer = new QTimer(this);
+    m_firingTimer->setInterval(50);
+    connect(m_firingTimer, SIGNAL(timeout()), SLOT(toggleFiring()));
+
+    m_hwIsFiring = false;
+    m_fireMode = Hardware::Pulse;
+}
+
+void TehTrigger::setFireMode(Hardware::FireMode fireMode)
+{
+    m_fireMode = fireMode;
+}
+
+bool TehTrigger::startFiring()
+{
+    bool ok = true;
+
+    if (m_fireMode == Hardware::Pulse)
+    {
+        if (!m_hwIsFiring)
+        {
+            ok = m_hardware->hw_startFiring(m_trigger);
+            if (ok) m_hwIsFiring = true;
+        }
+    }
+    else if (m_fireMode == Hardware::FullyAutomatic ||
+             m_fireMode == Hardware::Burst ||
+             m_fireMode == Hardware::SingleShot)
+    {
+        m_burst = 0;
+
+        if (!m_firingTimer->isActive())
+        {
+            m_firingTimer->start();
+            toggleFiring();
+        }
+    }
+    else if (m_fireMode == Hardware::Toggle)
+    {
+        toggleFiring();
+    }
+
+    return ok;
+}
+
+bool TehTrigger::stopFiring()
+{
+    bool ok = true;
+
+    if (m_fireMode == Hardware::Pulse)
+    {
+        if (m_hwIsFiring)
+        {
+            ok = m_hardware->hw_stopFiring(m_trigger);
+            if (ok) m_hwIsFiring = false;
+        }
+    }
+    else if (m_fireMode == Hardware::FullyAutomatic)
+    {
+        if (m_firingTimer->isActive())
+        {
+            m_firingTimer->stop();
+
+            ok = m_hardware->hw_stopFiring(m_trigger);
+            if (ok) m_hwIsFiring = false;
+        }
+    }
+
+    return ok;
+}
+
+void TehTrigger::toggleFiring()
+{
+    if (m_hwIsFiring)
+        m_hwIsFiring = !m_hardware->hw_stopFiring(m_trigger);
+    else
+        m_hwIsFiring = m_hardware->hw_startFiring(m_trigger);
+
+    if (m_fireMode == Hardware::SingleShot && !m_hwIsFiring)
+    {
+        m_firingTimer->stop();
+    }
+    else if (m_fireMode == Hardware::Burst && !m_hwIsFiring)
+    {
+        ++m_burst;
+        if (m_burst >= 3)
+        {
+            m_firingTimer->stop();
+        }
+    }
 }

@@ -7,9 +7,12 @@
 #include <QTransform>
 #include "parametermanager.h"
 
+class TehTrigger;
+
 class Hardware : public QObject, public ParameterOwner
 {
     Q_OBJECT
+    friend class TehTrigger;
 public:
     Hardware(QObject *parent=0);
 
@@ -78,21 +81,38 @@ protected:
     QHash<Pantilt,QTransform> m_calibrationMatrix;
     QHash<Pantilt,QTransform> m_calibrationMatrixInverted;
 
-    QHash<Trigger,FireMode> m_fireMode;
-    QHash<Trigger,QTimer*> m_firingTimer;
-    QHash<Trigger,bool> m_hwIsFiring;
-    QHash<Trigger,int> m_burst;
+    QHash<Trigger,TehTrigger*> m_triggers;
 
     Speed m_manualControlSpeed;
 
     ParameterManager *m_parameterManager;
 
-private slots:
-    void toggleTrigger();
-    void toggleTrigger(Trigger trigger);
-
 signals:
     void currentPositionChanged(Pantilt pantilt, int x, int y);
+};
+
+class TehTrigger : public QObject
+{
+    Q_OBJECT
+public:
+    TehTrigger(Hardware::Trigger trigger, Hardware *hardware);
+    void setFireMode(Hardware::FireMode fireMode);
+
+public slots:
+    bool startFiring();
+    bool stopFiring();
+
+private:
+    Hardware::Trigger m_trigger;
+    Hardware *m_hardware;
+
+    Hardware::FireMode m_fireMode;
+    QTimer* m_firingTimer;
+    bool m_hwIsFiring;
+    int m_burst;
+
+private slots:
+    void toggleFiring();
 };
 
 #endif // HARDWARE_H
