@@ -38,14 +38,16 @@ private:
 
         int m_max_joy;
 
-        char m_left_fire_button;
-        char m_right_fire_button;
-        char m_laser_button;
+        char m_button_left_fire;
+        char m_button_right_fire;
+        char m_button_eyeLaser;
+        char m_button_left_laser;
+        char m_button_right_laser;
 
-        char m_body_x_axis;
-        char m_body_y_axis;
-        char m_laser_x_axis;
-        char m_laser_y_axis;
+        char m_axis_body_x;
+        char m_axis_body_y;
+        char m_axis_laser_x;
+        char m_axis_laser_y;
 
         QHash<int,QDateTime> m_doubleClickTimers;
     };

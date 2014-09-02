@@ -11,7 +11,7 @@ Hardware::Hardware(QObject *parent) :
     qRegisterMetaType<Pantilt>("Pantilt");
     connect(m_parameterManager, SIGNAL(parametersChanged()), SLOT(onParametersChanged()));
 
-    for (int i=Hardware::EyeLaser; i<=Hardware::RightGun; i++)
+    for (int i=Hardware::EyeLaser; i<Hardware::__Trigger_Size__; i++)
     {
         Hardware::Trigger trigger = (Hardware::Trigger) i;
         m_firingTimer[trigger] = new QTimer(this);

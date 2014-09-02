@@ -70,17 +70,25 @@ void SentryInput::run()
 
                 qDebug(cat) << "Pushed button" << event.jbutton.button;
 
-                if (event.jbutton.button == joystick->m_left_fire_button)
+                if (event.jbutton.button == joystick->m_button_left_fire)
                 {
                     m_controller->startFiring(Hardware::LeftGun);
                 }
-                else if (event.jbutton.button == joystick->m_right_fire_button)
+                else if (event.jbutton.button == joystick->m_button_right_fire)
                 {
                     m_controller->startFiring(Hardware::RightGun);
                 }
-                else if (event.jbutton.button == joystick->m_laser_button)
+                else if (event.jbutton.button == joystick->m_button_eyeLaser)
                 {
                     m_controller->startFiring(Hardware::EyeLaser);
+                }
+                else if (event.jbutton.button == 4)
+                {
+                    m_controller->startFiring(Hardware::LeftLaser);
+                }
+                else if (event.jbutton.button == 5)
+                {
+                    m_controller->startFiring(Hardware::RightLaser);
                 }
                 else if (event.jbutton.button == 10)
                 {
@@ -107,17 +115,25 @@ void SentryInput::run()
 
                 if (!doubleClick)
                 {
-                    if (event.jbutton.button == joystick->m_left_fire_button)
+                    if (event.jbutton.button == joystick->m_button_left_fire)
                     {
                         m_controller->stopFiring(Hardware::LeftGun);
                     }
-                    else if (event.jbutton.button == joystick->m_right_fire_button)
+                    else if (event.jbutton.button == joystick->m_button_right_fire)
                     {
                         m_controller->stopFiring(Hardware::RightGun);
                     }
-                    else if (event.jbutton.button == joystick->m_laser_button)
+                    else if (event.jbutton.button == joystick->m_button_eyeLaser)
                     {
                         m_controller->stopFiring(Hardware::EyeLaser);
+                    }
+                    else if (event.jbutton.button == 4)
+                    {
+                        m_controller->stopFiring(Hardware::LeftLaser);
+                    }
+                    else if (event.jbutton.button == 5)
+                    {
+                        m_controller->stopFiring(Hardware::RightLaser);
                     }
                 }
 
@@ -145,19 +161,19 @@ void SentryInput::run()
                 qreal m_axis_laser_x;
                 qreal m_axis_laser_y;
 
-                if (event.jaxis.axis == joystick->m_body_x_axis)
+                if (event.jaxis.axis == joystick->m_axis_body_x)
                 {
                     m_axis_body_x = movement;
                 }
-                else if (event.jaxis.axis == joystick->m_body_y_axis)
+                else if (event.jaxis.axis == joystick->m_axis_body_y)
                 {
                     m_axis_body_y = movement;
                 }
-                else if (event.jaxis.axis == joystick->m_laser_x_axis)
+                else if (event.jaxis.axis == joystick->m_axis_laser_x)
                 {
                     m_axis_laser_x = movement;
                 }
-                else if (event.jaxis.axis == joystick->m_laser_y_axis)
+                else if (event.jaxis.axis == joystick->m_axis_laser_y)
                 {
                     m_axis_laser_y = movement;
                 }
@@ -234,40 +250,46 @@ SentryInput::Joystick::Joystick(SDL_Joystick *joystick)
     {
         // Sony Computer Entertainment Wireless Controller
 
-        m_left_fire_button = 6;
-        m_right_fire_button = 7;
-        m_laser_button = 1;
+        m_button_eyeLaser = 1;
+        m_button_left_fire = 6;
+        m_button_right_fire = 7;
+        m_button_left_laser = 0; // ?
+        m_button_right_laser = 0; // ?
 
-        m_body_x_axis = 0;
-        m_body_y_axis = 1;
-        m_laser_x_axis = 2;
-        m_laser_y_axis = 5;
+        m_axis_body_x = 0;
+        m_axis_body_y = 1;
+        m_axis_laser_x = 2;
+        m_axis_laser_y = 5;
     }
     else if (!strcmp(guid, "030000005e0400008e02000014010000"))
     {
         // Microsoft X-Box 360 pad
 
-        m_left_fire_button = 6;
-        m_right_fire_button = 4;
-        m_laser_button = 5;
+        m_button_eyeLaser = 5;
+        m_button_left_fire = 6;
+        m_button_right_fire = 4;
+        m_button_left_laser = 0; // ?
+        m_button_right_laser = 0; // ?
 
-        m_body_x_axis = 0;
-        m_body_y_axis = 1;
-        m_laser_x_axis = 3;
-        m_laser_y_axis = 4;
+        m_axis_body_x = 0;
+        m_axis_body_y = 1;
+        m_axis_laser_x = 3;
+        m_axis_laser_y = 4;
     }
     else // else if (!strcmp(guid, "030000006d04000018c2000010010000"))
     {
         // Logitech Logitech RumblePad 2 USB
 
-        m_left_fire_button = 6;
-        m_right_fire_button = 7;
-        m_laser_button = 1;
+        m_button_eyeLaser = 1;
+        m_button_left_fire = 6;
+        m_button_right_fire = 7;
+        m_button_left_laser = 4; // ?
+        m_button_right_laser = 5; // ?
 
-        m_body_x_axis = 0;
-        m_body_y_axis = 1;
-        m_laser_x_axis = 2;
-        m_laser_y_axis = 3;
+        m_axis_body_x = 0;
+        m_axis_body_y = 1;
+        m_axis_laser_x = 2;
+        m_axis_laser_y = 3;
     }
 
     m_max_joy = MAX_JOY;

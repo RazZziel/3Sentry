@@ -114,9 +114,12 @@ bool HardwareThunder::hw_startFiring(Trigger trigger)
     case EyeLaser:
         movement_handler(3, 1);
         break;
-    case RightGun:
     case LeftGun:
+    case RightGun:
         movement_handler(2, 0x10);
+        break;
+    case LeftLaser:
+    case RightLaser:
         break;
     }
 
@@ -130,8 +133,11 @@ bool HardwareThunder::hw_stopFiring(Trigger trigger)
     case EyeLaser:
         movement_handler(3, 0);
         break;
-    case RightGun:
     case LeftGun:
+    case RightGun:
+        //movement_handler(2, 0);
+    case LeftLaser:
+    case RightLaser:
         //movement_handler(2, 0);
         break;
     }

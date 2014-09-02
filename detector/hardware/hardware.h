@@ -21,7 +21,10 @@ public:
     enum Trigger {
         EyeLaser = 0,
         LeftGun = 1,
-        RightGun = 2
+        RightGun = 2,
+        LeftLaser = 3,
+        RightLaser = 4,
+        __Trigger_Size__
     };
 
     enum Speed {
