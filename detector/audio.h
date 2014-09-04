@@ -18,6 +18,7 @@ public:
     explicit Audio(QObject *parent = 0);
 
     bool isPlaying();
+    bool isPlaying(Type type);
 
     void play(Type type, int index=-1);
 
@@ -26,6 +27,7 @@ private:
 
     QMediaPlayer *m_player;
     QHash<Type,int> m_lastSampleIndex;
+    Type m_lastType;
 };
 
 #endif // AUDIO_H

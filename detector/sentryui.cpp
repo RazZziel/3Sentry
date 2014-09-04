@@ -134,7 +134,7 @@ void SentryUI::onOpenCvViewClicked(Qt::MouseButton button, QPoint pos)
     }
     else
     {
-        for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+        for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
         {
             Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
 

@@ -9,7 +9,8 @@
 
 Audio::Audio(QObject *parent) :
     QObject(parent),
-    m_player(new QMediaPlayer())
+    m_player(new QMediaPlayer()),
+    m_lastType(Retire)
 {
     m_player->setVolume(50);
 
@@ -24,6 +25,11 @@ bool Audio::isPlaying()
             status != QMediaPlayer::EndOfMedia);
 }
 
+bool Audio::isPlaying(Type type)
+{
+    return isPlaying() && (m_lastType == type);
+}
+
 void Audio::play(Type type, int index)
 {
     QString filename = getFilename(type, index);
@@ -32,6 +38,8 @@ void Audio::play(Type type, int index)
 
     m_player->setMedia(QUrl::fromLocalFile(filename));
     m_player->play();
+
+    m_lastType = type;
 }
 
 

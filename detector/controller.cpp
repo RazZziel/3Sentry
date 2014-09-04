@@ -18,6 +18,10 @@ Controller::Controller(QObject *parent) :
     QObject(parent),
     m_parameterManager(new ParameterManager(this, this)),
     m_processTimer(this),
+    m_targetLostTimeout(this),
+    m_sentryDisabledTimeout(this),
+    m_sentryState(Retired),
+    m_lastFpsMeasure(0),
     m_hardware(NULL),
     m_audio(new Audio()),
     m_captureDevice(new cv::VideoCapture()),
@@ -70,6 +74,14 @@ Controller::Controller(QObject *parent) :
     m_processTimer.setInterval(50);
     connect(&m_processTimer, SIGNAL(timeout()), SLOT(process()));
     m_processTimer.start();
+
+    m_targetLostTimeout.setInterval(1000);
+    m_targetLostTimeout.setSingleShot(true);
+    connect(&m_targetLostTimeout, SIGNAL(timeout()), SLOT(onTargetLost()));
+
+    m_sentryDisabledTimeout.setInterval(3000);
+    m_sentryDisabledTimeout.setSingleShot(true);
+    connect(&m_sentryDisabledTimeout, SIGNAL(timeout()), SLOT(onDisabled()));
 
     m_hardware->currentPosition(Hardware::Body,
                                 (uint&) m_currentPantiltPosition[Hardware::Body].x,
@@ -186,7 +198,7 @@ void Controller::stopProcessing()
 {
     if (m_processing)
     {
-        m_audio->play(Audio::Retire);
+        seSentrytState(Retired);
     }
 
     m_processing = false;
@@ -249,13 +261,7 @@ bool Controller::startCalibration()
         return false;
     }
 
-    for (int i=Hardware::EyeLaser; i<=Hardware::LeftGun; i++)
-    {
-        Hardware::Trigger trigger = (Hardware::Trigger) i;
-        m_hardware->startFiring(trigger);
-    }
-
-    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
     {
         Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
 
@@ -353,12 +359,6 @@ bool Controller::abortCallbration()
 
     m_calibrating = false;
 
-    for (int i=Hardware::EyeLaser; i<=Hardware::LeftGun; i++)
-    {
-        Hardware::Trigger trigger = (Hardware::Trigger) i;
-        m_hardware->stopFiring(trigger);
-    }
-
     return true;
 }
 
@@ -443,13 +443,18 @@ void Controller::process()
 
         // Potential targets --> Current target
 
+        QString sentryStateStr;
+        TrackingObject *previousTarget = m_currentTarget;
         m_currentTarget = findCurrentTarget(m_trackingObjects);
         if (m_currentTarget)
         {
+            if (!previousTarget)
+            {
+                seSentrytState(Deployed);
+            }
+
             if (m_parameterManager->value("tagTargets").toBool())
             {
-                m_hardware->startFiring(Hardware::EyeLaser);
-
                 targetAbsolute(Hardware::Eye,
                                m_currentTarget->center.x,
                                m_currentTarget->center.y);
@@ -461,14 +466,31 @@ void Controller::process()
                                m_currentTarget->center.x,
                                m_currentTarget->center.y);
             }
+
+            sentryStateStr = tr("Targeting: %1").arg(m_currentTarget->id);
         }
         else
         {
-            if (m_parameterManager->value("tagTargets").toBool())
+            if (previousTarget)
             {
-                m_hardware->stopFiring(Hardware::EyeLaser);
+                seSentrytState(Searching);
+            }
+
+            switch (m_sentryState)
+            {
+            case Disabled: sentryStateStr = tr("Disabled"); break;
+            case Deployed: sentryStateStr = tr("Deployed"); break;
+            case Searching: sentryStateStr = tr("Searching"); break;
+            case Retired: sentryStateStr = tr("Retired"); break;
             }
         }
+
+        cv::putText(m_currentFrame,
+                    sentryStateStr.toStdString(),
+                    cv::Point(2, m_currentFrame.rows-2),
+                    cv::FONT_HERSHEY_PLAIN, 1,
+                    CV_RGB(255,255,255),
+                    1, 8);
 
 
         // Draw all tracking objects
@@ -492,7 +514,7 @@ void Controller::process()
 
     // Draw hardware state
 
-    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
     {
         Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
         drawCrosshair(m_currentFrame,
@@ -501,6 +523,24 @@ void Controller::process()
                       m_pantiltColor[pantilt],
                       1);
     }
+
+
+    // Count FPS
+    if (m_fpsTimer.isValid())
+    {
+        double fps = 1000.0 / m_fpsTimer.elapsed();
+        m_lastFpsMeasure = (fps + m_lastFpsMeasure)/2;
+
+        std::string str = QString("FPS: %1").arg(m_lastFpsMeasure).toStdString();
+        cv::Size size = cv::getTextSize(str, cv::FONT_HERSHEY_PLAIN, 1, 1, 0);
+        cv::putText(m_currentFrame,
+                    str,
+                    cv::Point(2, 2+size.height),
+                    cv::FONT_HERSHEY_PLAIN, 1,
+                    CV_RGB(255,255,255),
+                    1, 8);
+    }
+    m_fpsTimer.start();
 
 
     emit newOpenCVFrame(m_currentFrame);
@@ -512,6 +552,47 @@ void Controller::process()
     }
 
     m_processTimer.start();
+}
+
+void Controller::onDeployed()
+{
+    m_targetLostTimeout.stop();
+    m_sentryDisabledTimeout.stop();
+
+    if (m_parameterManager->value("tagTargets").toBool())
+    {
+        m_hardware->startFiring(Hardware::EyeLaser);
+    }
+
+    m_audio->play(Audio::Deploy);
+}
+
+void Controller::onTargetLost()
+{
+    seSentrytState(Searching);
+
+    if (m_parameterManager->value("tagTargets").toBool())
+    {
+        m_hardware->stopFiring(Hardware::EyeLaser);
+    }
+
+    m_audio->play(Audio::Search);
+
+    m_hardware->center();
+
+    m_sentryDisabledTimeout.start();
+}
+
+void Controller::onDisabled()
+{
+    seSentrytState(Disabled);
+
+    m_audio->play(Audio::Disabled);
+}
+
+void Controller::onRetired()
+{
+    m_audio->play(Audio::Retire);
 }
 
 void Controller::onParametersChanged()
@@ -615,11 +696,6 @@ QList<Controller::TrackingObject> Controller::findTrackingObjects(const QList<cv
         {
             trackingObject.id = m_trackingObjectId++;
             //qDebug() << "Creating new tracking object" << trackingObject.id;
-
-            if (!m_audio->isPlaying())
-            {
-                m_audio->play(Audio::Deploy);
-            }
         }
 
 
@@ -741,4 +817,30 @@ void Controller::drawCrosshair(cv::Mat &image,
              color,
              thickness,
              CV_AA, 0);
+}
+
+void Controller::seSentrytState(State state)
+{
+    if (m_sentryState != state)
+    {
+        switch (state)
+        {
+        case Disabled:
+            break;
+
+        case Deployed:
+            onDeployed();
+            break;
+
+        case Searching:
+            m_targetLostTimeout.start();
+            break;
+
+        case Retired:
+            onRetired();
+            break;
+        }
+
+        m_sentryState = state;
+    }
 }

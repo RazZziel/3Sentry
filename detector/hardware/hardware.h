@@ -18,7 +18,8 @@ public:
 
     enum Pantilt {
         Body = 0,
-        Eye = 1
+        Eye = 1,
+        __Pantilt_Size__
     };
 
     enum Trigger {
@@ -58,9 +59,15 @@ public:
     QTransform calibrationMatrix(Pantilt pantilt);
 
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
+
+    bool targetAbsolute(uint x, uint y, bool convertPos=true);
+    bool targetRelative(qreal dx, qreal dy);
+    bool center();
+
     virtual bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true) =0;
     virtual bool targetRelative(Pantilt pantilt, qreal dx, qreal dy) =0;
     virtual bool center(Pantilt pantilt);
+
     virtual bool startFiring(Trigger trigger);
     virtual bool stopFiring(Trigger trigger);
 

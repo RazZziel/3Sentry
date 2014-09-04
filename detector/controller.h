@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QTime>
 #include <QHash>
 #include <cv.h>
 #include <highgui.h>
@@ -54,6 +55,13 @@ public slots:
     bool stopFiring(Hardware::Trigger trigger);
 
 private:
+    enum State {
+        Disabled,
+        Deployed,
+        Searching,
+        Retired
+    };
+
     struct TrackingObject {
         qulonglong id;
         cv::Rect rect;
@@ -79,7 +87,14 @@ private:
 
     ParameterManager *m_parameterManager;
     QTimer m_processTimer;
-    QTimer m_targetMissTimeout;
+
+    QTimer m_targetLostTimeout;
+    QTimer m_sentryDisabledTimeout;
+    State m_sentryState;
+    void seSentrytState(State state);
+
+    QTime m_fpsTimer;
+    double m_lastFpsMeasure;
 
     QList<Detector*> m_detectors;
     Hardware *m_hardware;
@@ -108,6 +123,12 @@ private:
 
 private slots:
     void process();
+
+    void onDeployed();
+    void onTargetLost();
+    void onDisabled();
+    void onRetired();
+
     void onParametersChanged();
     void onCurrentPositionChanged(Hardware::Pantilt pantilt, int x, int y);
 

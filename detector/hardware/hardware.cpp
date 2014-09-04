@@ -22,7 +22,7 @@ void Hardware::init()
 {
     m_parameterManager->init();
 
-    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
     {
         Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
         center(pantilt);
@@ -64,7 +64,7 @@ ParameterManager *Hardware::parameterManager()
 
 void Hardware::onParametersChanged()
 {
-    for (int i=Hardware::Body; i<=Hardware::Eye; i++)
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
     {
         Pantilt pantilt = (Pantilt) i;
         m_calibrationMatrix[pantilt] = m_parameterManager->value(QString("calibration/%1").arg(pantilt)).value<QTransform>();
@@ -204,6 +204,45 @@ bool Hardware::setManualControlSpeed(Speed speed)
 {
     m_manualControlSpeed = speed;
     return true;
+}
+
+bool Hardware::targetAbsolute(uint x, uint y, bool convertPos)
+{
+    bool ok = true;
+
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        ok &= targetAbsolute(pantilt, x, y, convertPos);
+    }
+
+    return ok;
+}
+
+bool Hardware::targetRelative(qreal dx, qreal dy)
+{
+    bool ok = true;
+
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        ok &= targetRelative(pantilt, dx, dy);
+    }
+
+    return ok;
+}
+
+bool Hardware::center()
+{
+    bool ok = true;
+
+    for (int i=Hardware::Body; i<Hardware::__Pantilt_Size__; i++)
+    {
+        Hardware::Pantilt pantilt = (Hardware::Pantilt) i;
+        ok &= center(pantilt);
+    }
+
+    return ok;
 }
 
 TehTrigger::TehTrigger(Hardware::Trigger trigger, Hardware *hardware) :
