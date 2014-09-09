@@ -9,6 +9,7 @@
 #include <highgui.h>
 #include "hardware/hardware.h"
 #include "parametermanager.h"
+#include "profilingdata.h"
 
 class Detector;
 class Hardware;
@@ -134,6 +135,7 @@ private slots:
 
 signals:
     void newOpenCVFrame(cv::Mat image);
+    void newProfilingData(ProfilingData);
 };
 
 #endif // CONTROLLER_H

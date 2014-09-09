@@ -50,7 +50,8 @@ HEADERS += \
     util.h \
     parameter.h \
     ui/parameterwidget.h \
-    parametermanager.h
+    parametermanager.h \
+    profilingdata.h
 
 FORMS += \
     sentryui.ui \

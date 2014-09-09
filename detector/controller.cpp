@@ -393,6 +393,10 @@ void Controller::process()
 {
     m_processTimer.stop();
 
+    ProfilingData profilingData;
+    QTime profilingTimer;
+    profilingTimer.start();
+
     if (!m_captureDevice->isOpened() || !m_captureDevice->read(m_currentFrame))
     {
         m_currentFrame = cv::Mat::zeros(480, 640, CV_8UC3);
@@ -409,8 +413,12 @@ void Controller::process()
                     1, 8);
     }
 
+    profilingData << ProfilingValue("readImage", profilingTimer.elapsed());
+
     if (m_processing && !m_calibrating)
     {
+        int profilingTimerTracking = 0;
+
         QList<TrackingObject> trackingObjects;
 
         foreach (Detector *detector, m_detectors)
@@ -419,7 +427,11 @@ void Controller::process()
             {
                 // Image --> Detected objects
 
+                profilingTimer.start();
+
                 QList<cv::Rect> detectedObjects = detector->detect(m_currentFrame);
+
+                profilingData << ProfilingValue(detector->name(), profilingTimer.elapsed());
 
                 foreach (const TrackingObject &object, m_trackingObjects)
                 {
@@ -432,20 +444,32 @@ void Controller::process()
                 // Detected objects --> Tracking objects
                 // Tracking objects --> Potential targets
 
+                profilingTimer.start();
+
                 trackingObjects << findTrackingObjects(detectedObjects,
                                                        m_trackingObjects,
                                                        detector);
+
+                profilingTimerTracking += profilingTimer.elapsed();
             }
         }
+
+        profilingData << ProfilingValue("tracking", profilingTimerTracking);
+
 
         m_trackingObjects = trackingObjects;
 
 
         // Potential targets --> Current target
 
+        profilingTimer.start();
+
         QString sentryStateStr;
         TrackingObject *previousTarget = m_currentTarget;
         m_currentTarget = findCurrentTarget(m_trackingObjects);
+
+        profilingData << ProfilingValue("findCurrentTarget", profilingTimer.elapsed());
+
         if (m_currentTarget)
         {
             if (!previousTarget)
@@ -544,6 +568,7 @@ void Controller::process()
 
 
     emit newOpenCVFrame(m_currentFrame);
+    emit newProfilingData(profilingData);
 
 
     if (m_videoWriter->isOpened())

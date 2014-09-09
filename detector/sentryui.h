@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <cv.h>
 #include "parameter.h"
+#include "profilingdata.h"
 
 class QCloseEvent;
 class QFormLayout;
@@ -34,6 +35,7 @@ private:
 
 private slots:
     void onNewOpenCVFrame(cv::Mat image);
+    void onNewProfilingData(ProfilingData);
     void onCaptureDeviceChanged(int index);
     void onOpenCvViewClicked(Qt::MouseButton button, QPoint pos);
     void updateDetectorParameters();

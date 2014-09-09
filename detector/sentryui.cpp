@@ -25,6 +25,7 @@ SentryUI::SentryUI(Controller *controller, QWidget *parent) :
     QApplication::instance()->installEventFilter(this);
 
     connect(m_controller, SIGNAL(newOpenCVFrame(cv::Mat)), SLOT(onNewOpenCVFrame(cv::Mat)));
+    connect(m_controller, SIGNAL(newProfilingData(ProfilingData)), SLOT(onNewProfilingData(ProfilingData)));
 
     ui->cmbCaptureDevice->addItem(tr("File..."), -1);
     ui->cmbCaptureDevice->insertSeparator(ui->cmbCaptureDevice->count());
@@ -74,6 +75,23 @@ void SentryUI::onNewOpenCVFrame(cv::Mat image)
     ui->wOpenCV->setMaximumSize(image.cols, image.rows);
     adjustSize();
     ui->wOpenCV->showImage(image);
+}
+
+void SentryUI::onNewProfilingData(ProfilingData profilingData)
+{
+    // TODO: This is pretty disgusting, should be a QTableView + a model
+
+    int row = 0;
+    ui->tblProfilingData->clear();
+    ui->tblProfilingData->setColumnCount(2);
+    ui->tblProfilingData->setRowCount(profilingData.count());
+
+    foreach (const ProfilingValue &value, profilingData)
+    {
+        ui->tblProfilingData->setItem(row, 0, new QTableWidgetItem(value.first));
+        ui->tblProfilingData->setItem(row, 1, new QTableWidgetItem(QString("%1ms").arg(value.second)));
+        ++row;
+    }
 }
 
 void SentryUI::closeEvent(QCloseEvent *event)
