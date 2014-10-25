@@ -175,7 +175,7 @@ bool Hardware::setCalibrationData(Pantilt pantilt, CalibrationData calibrationDa
     qDebug() << "Calibration matrix:" << m_calibrationMatrix[pantilt];
     qDebug() << "Inverted calibration matrix:" << m_calibrationMatrixInverted[pantilt];
 
-    m_parameterManager->setParameter(QString("calibration/%1").arg(pantilt), m_calibrationMatrix[pantilt]);
+    m_parameterManager->setParameter(QString("pantilt/%1/calibration").arg(pantilt), m_calibrationMatrix[pantilt]);
 
     return true;
 }

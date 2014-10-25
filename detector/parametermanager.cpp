@@ -43,7 +43,7 @@ void ParameterManager::setParameter(const QString &name, const QVariant &value)
     }
     else
     {
-        qWarning() << "This detector doesn't have a parameter named" << name;
+        qWarning() << "This entity doesn't have a parameter named" << name;
     }
 
     emit parameterChanged(name, value);
