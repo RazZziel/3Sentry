@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include "PanTilt.h"
+#include "NewPing.h"
 
 #define __DEBUG__ 0
 
@@ -15,6 +16,8 @@ char bufLen = 0;
 PanTilt* panTilts[2];
 int nPanTilts = 0;
 
+NewPing sonar = NewPing(34, 24, 500);
+
 Servo servoPan, servoTilt;
 
 void serialWrite(char bytes[], unsigned char len);
@@ -27,6 +30,7 @@ void limits(unsigned char panTiltId);
 void getPosition(unsigned char panTiltId);
 void fire(unsigned char gunId);
 void stopFiring(unsigned char gunId);
+void distance();
 
 void setup()
 {
@@ -71,7 +75,7 @@ void serialEvent1()
     {
         unsigned char myByte = Serial1.read();
 
-        #if __DEBUG___ > 2
+        #if __DEBUG__ > 2
         Serial.print("Received: ");
         Serial.println(myByte, HEX);
         #endif
@@ -108,6 +112,12 @@ void processCommand()
     {
         switch (buf[1])
         {
+        case 'D':
+            #if __DEBUG__ > 0
+            Serial.println("Distance");
+            #endif
+            distance();
+            break;
         case 'L':
             #if __DEBUG__ > 0
             Serial.println("Limits");
@@ -233,6 +243,15 @@ void stopFiring(unsigned char gunId)
     {
         digitalWrite(LASER_PIN_2, LOW);
     }
+}
+
+void distance()
+{
+    int avg;
+    avg = sonar.ping_median(3);
+    char buf[1];
+    buf[0] = sonar.convert_cm(avg);
+    serialWrite(buf, 1);
 }
 
 void serialWrite(char bytes[], unsigned char len)
