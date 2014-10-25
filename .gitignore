@@ -6,3 +6,5 @@ detector/trackface/trackface
 build-*
 *-build
 *.autosave
+*~
+*.swp
