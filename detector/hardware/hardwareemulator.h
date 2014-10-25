@@ -13,6 +13,7 @@ public:
 
     bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
+    bool currentDistance(Pantilt pantilt, uint &distance) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
 

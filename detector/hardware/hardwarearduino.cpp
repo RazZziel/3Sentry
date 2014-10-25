@@ -91,6 +91,8 @@ void HardwareArduino::updateCurrentPosition()
         {
             QPoint screeenPoint = hardware2screen(pantilt, m_currentHwPosition[pantilt]);
             emit currentPositionChanged(pantilt, screeenPoint.x(), screeenPoint.y());
+
+            hw_updateDistance(pantilt);
         }
         else
         {
@@ -186,11 +188,16 @@ bool HardwareArduino::hw_updateLimits(Pantilt pantilt)
     return true;
 }
 
-bool HardwareArduino::
-currentPosition(Pantilt pantilt, uint &x, uint &y) const
+bool HardwareArduino::currentPosition(Pantilt pantilt, uint &x, uint &y) const
 {
     x = m_currentHwPosition[pantilt].x();
     y = m_currentHwPosition[pantilt].y();
+    return true;
+}
+
+bool HardwareArduino::currentDistance(Hardware::Pantilt pantilt, uint &distance) const
+{
+    distance = m_currentHwDistance[pantilt];
     return true;
 }
 
@@ -219,6 +226,45 @@ bool HardwareArduino::hw_updateCurrentPosition(Pantilt pantilt)
              << "screen=" << screeenPoint;
 
     m_currentHwPosition[pantilt] = QPoint(hardwarePoint.x(), hardwarePoint.y());
+
+    return true;
+}
+
+bool HardwareArduino::hw_updateDistance(Hardware::Pantilt pantilt)
+{
+    if (pantilt != Eye)
+        return false;
+
+    QByteArray payload("D");
+    QByteArray reply;
+    if (!sendCommand(payload, &reply))
+    {
+        return false;
+    }
+
+#if 0
+    if (reply.length() != 2)
+    {
+        qWarning() << "Invalid reply" << reply.toHex();
+        return false;
+    }
+
+    qDebug() << (quint8) reply[0] <<  (quint8) reply[1];
+    uint distance = ( (quint8) reply[0] )*16 + ( (quint8) reply[1] );
+#else
+    if (reply.length() != 1)
+    {
+        qWarning() << "Invalid reply" << reply.toHex();
+        return false;
+    }
+
+    uint distance = (quint8) reply[0];
+#endif
+
+    qDebug() << "Pantilt" << pantilt
+             << "current distance=" << distance;
+
+    m_currentHwDistance[pantilt] = distance;
 
     return true;
 }

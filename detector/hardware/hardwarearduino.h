@@ -18,6 +18,7 @@ public:
 
     bool getLimits(Pantilt pantilt, int &minX, int &maxX, int &minY, int &maxY);
     bool currentPosition(Pantilt pantilt, uint &x, uint &y) const;
+    bool currentDistance(Pantilt pantilt, uint &distance) const;
     bool targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos=true);
     bool targetRelative(Pantilt pantilt, qreal dx, qreal dy);
     bool center(Pantilt pantilt);
@@ -30,6 +31,7 @@ private:
     bool hw_stopFiring(Trigger trigger);
 
     bool hw_updateCurrentPosition(Pantilt pantilt);
+    bool hw_updateDistance(Pantilt pantilt);
 
     bool sendCommand(const QByteArray &payload, QByteArray *ret_reply=NULL) const;
     bool readReply(QByteArray *ret_reply) const;
@@ -37,6 +39,7 @@ private:
     QSerialPort *m_serialPort;
     mutable QMutex m_commandMutex;
     QMap<Pantilt,QPoint> m_currentHwPosition;
+    QMap<Pantilt,uint> m_currentHwDistance;
     QMap<Pantilt,QPointF> m_wantedHwPosition;
     QMap<Pantilt,QPointF> m_pantiltCurrentSpeed;
     QMap<Pantilt,QPointF> m_minHwPosition;

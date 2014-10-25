@@ -42,6 +42,13 @@ bool HardwareEmulator::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     return true;
 }
 
+bool HardwareEmulator::currentDistance(Hardware::Pantilt pantilt, uint &distance) const
+{
+    Q_UNUSED(pantilt);
+    Q_UNUSED(distance);
+    return true;
+}
+
 bool HardwareEmulator::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
     if (convertPos)

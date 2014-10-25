@@ -77,6 +77,13 @@ bool HardwareThunder::currentPosition(Pantilt pantilt, uint &x, uint &y) const
     return false;
 }
 
+bool HardwareThunder::currentDistance(Hardware::Pantilt pantilt, uint &distance) const
+{
+    Q_UNUSED(pantilt);
+    Q_UNUSED(distance);
+    return false;
+}
+
 bool HardwareThunder::targetAbsolute(Pantilt pantilt, uint x, uint y, bool convertPos)
 {
     Q_UNUSED(pantilt);

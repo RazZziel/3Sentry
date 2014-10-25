@@ -59,6 +59,7 @@ public:
     QTransform calibrationMatrix(Pantilt pantilt);
 
     virtual bool currentPosition(Pantilt pantilt, uint &x, uint &y) const =0;
+    virtual bool currentDistance(Pantilt pantilt, uint &distance) const =0;
 
     bool targetAbsolute(uint x, uint y, bool convertPos=true);
     bool targetRelative(qreal dx, qreal dy);

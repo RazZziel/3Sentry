@@ -546,6 +546,18 @@ void Controller::process()
                       m_pantiltRadius[pantilt],
                       m_pantiltColor[pantilt],
                       1);
+
+        uint distance;
+        if (m_hardware->currentDistance(pantilt, distance))
+        {
+            cv::putText(m_currentFrame,
+                        QString("[%1]").arg(distance).toStdString(),
+                        cv::Point(m_currentPantiltPosition[pantilt].x,
+                                  m_currentPantiltPosition[pantilt].y + 30),
+                        cv::FONT_HERSHEY_PLAIN, 1,
+                        m_pantiltColor[pantilt],
+                        1, 8);
+        }
     }
 
 
